@@ -178,7 +178,7 @@ const relatedArticles = relatedArticlesList.slice(0, 2).map(a => ({
             <AuthorCard 
               name={author?.name || 'GoodSetup Team'} 
               bio={author?.bio || 'We create helpful guides and resources for better setups.'}
-              avatar={author?.avatar}
+              avatar={author?.avatar || undefined}
             />
           </div>
           
