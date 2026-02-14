@@ -1,0 +1,97 @@
+---
+// src/components/common/Newsletter.astro
+interface Props {
+  variant?: 'default' | 'compact';
+}
+
+const { variant = 'default' } = Astro.props;
+---
+
+{variant === 'default' ? (
+  <section class="section bg-primary-500">
+    <div class="container-content">
+      <div class="max-w-xl mx-auto text-center">
+        <h2 class="text-h1 text-white mb-3">
+          Stay Updated
+        </h2>
+        <p class="text-primary-100 mb-6">
+          Get the latest guides and tips delivered to your inbox. No spam, just useful content.
+        </p>
+        <form 
+          id="newsletter-form"
+          class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+        >
+          <input
+            type="email"
+            name="email"
+            placeholder="Enter your email"
+            required
+            class="flex-1 px-4 py-3 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50"
+          />
+          <button
+            type="submit"
+            class="btn bg-white text-primary-600 hover:bg-primary-50 px-6 py-3 rounded-md font-medium"
+          >
+            Subscribe
+          </button>
+        </form>
+        <p class="text-caption text-primary-200 mt-4">
+          Join 1,000+ subscribers. Unsubscribe anytime.
+        </p>
+      </div>
+    </div>
+  </section>
+) : (
+  <div class="card bg-gray-50 dark:bg-gray-800/50 border-0 p-6 text-center">
+    <h3 class="font-semibold text-gray-900 dark:text-white mb-2">
+      Subscribe to our newsletter
+    </h3>
+    <p class="text-body-s text-gray-600 dark:text-gray-400 mb-4">
+      Get the latest guides and tips delivered to your inbox.
+    </p>
+    <form id="newsletter-form-compact" class="flex flex-col sm:flex-row gap-2">
+      <input
+        type="email"
+        name="email"
+        placeholder="Enter your email"
+        required
+        class="flex-1 px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+      />
+      <button
+        type="submit"
+        class="btn btn-primary px-4 py-2"
+      >
+        Subscribe
+      </button>
+    </form>
+  </div>
+)}
+
+<script>
+  const forms = document.querySelectorAll('[id^="newsletter-form"]');
+  
+  forms.forEach(form => {
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form as HTMLFormElement);
+      const email = formData.get('email');
+      
+      // TODO: 集成实际邮件服务
+      console.log('Newsletter signup:', email);
+      
+      // 显示成功消息
+      const button = form.querySelector('button[type="submit"]');
+      if (button) {
+        const originalText = button.textContent;
+        button.textContent = 'Subscribed!';
+        button.setAttribute('disabled', 'true');
+        
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.removeAttribute('disabled');
+          (form as HTMLFormElement).reset();
+        }, 2000);
+      }
+    });
+  });
+</script>

@@ -1,0 +1,118 @@
+---
+// src/pages/admin/settings.astro
+// 站点设置
+
+export const prerender = false;
+
+import AdminLayout from '@layouts/AdminLayout.astro';
+
+const title = '站点设置';
+
+// 示例设置数据
+const settings = {
+  siteName: 'GoodSetup',
+  siteUrl: 'https://goodsetup.store',
+  siteDescription: 'Your guide to better setups. Quality content to help you make informed decisions.',
+  contactEmail: 'goodsetup@pronto.me',
+  twitterHandle: '@goodsetup',
+  gaMeasurementId: 'G-XXXXXXXXXX',
+};
+---
+
+<AdminLayout title={title}>
+  <form class="max-w-2xl space-y-6">
+    <!-- 基本设置 -->
+    <div class="admin-card">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">基本设置</h2>
+      
+      <div class="admin-form-group">
+        <label class="admin-label">站点名称</label>
+        <input type="text" value={settings.siteName} class="admin-input" />
+      </div>
+      
+      <div class="admin-form-group">
+        <label class="admin-label">站点 URL</label>
+        <input type="url" value={settings.siteUrl} class="admin-input" disabled />
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">在环境变量 SITE_URL 中配置</p>
+      </div>
+      
+      <div class="admin-form-group">
+        <label class="admin-label">站点描述</label>
+        <textarea rows="2" class="admin-input">{settings.siteDescription}</textarea>
+      </div>
+    </div>
+    
+    <!-- 联系方式 -->
+    <div class="admin-card">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">联系方式</h2>
+      
+      <div class="admin-form-group">
+        <label class="admin-label">联系邮箱</label>
+        <input type="email" value={settings.contactEmail} class="admin-input" />
+      </div>
+      
+      <div class="admin-form-group">
+        <label class="admin-label">Twitter 账号</label>
+        <input type="text" value={settings.twitterHandle} class="admin-input" />
+      </div>
+    </div>
+    
+    <!-- 分析设置 -->
+    <div class="admin-card">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">分析设置</h2>
+      
+      <div class="admin-form-group">
+        <label class="admin-label">Google Analytics ID</label>
+        <input type="text" value={settings.gaMeasurementId} class="admin-input" disabled />
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">在环境变量 GA_MEASUREMENT_ID 中配置</p>
+      </div>
+    </div>
+    
+    <!-- SEO 设置 -->
+    <div class="admin-card">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">SEO 设置</h2>
+      
+      <div class="admin-form-group">
+        <label class="admin-label">默认 OG 图片</label>
+        <input type="text" value="/images/og-default.jpg" class="admin-input" />
+      </div>
+      
+      <div class="flex items-center gap-4">
+        <div class="flex-1">
+          <label class="admin-label">Sitemap</label>
+          <p class="text-sm text-gray-500 dark:text-gray-400">自动生成，生产环境可访问</p>
+        </div>
+        <a href="/sitemap-index.xml" target="_blank" class="admin-btn admin-btn-secondary text-sm">
+          查看
+        </a>
+      </div>
+      
+      <div class="flex items-center gap-4 mt-4">
+        <div class="flex-1">
+          <label class="admin-label">robots.txt</label>
+          <p class="text-sm text-gray-500 dark:text-gray-400">动态生成</p>
+        </div>
+        <a href="/robots.txt" target="_blank" class="admin-btn admin-btn-secondary text-sm">
+          查看
+        </a>
+      </div>
+      
+      <div class="flex items-center gap-4 mt-4">
+        <div class="flex-1">
+          <label class="admin-label">llms.txt</label>
+          <p class="text-sm text-gray-500 dark:text-gray-400">AI 搜索优化文件</p>
+        </div>
+        <a href="/llms.txt" target="_blank" class="admin-btn admin-btn-secondary text-sm">
+          查看
+        </a>
+      </div>
+    </div>
+    
+    <!-- 操作按钮 -->
+    <div class="flex items-center gap-4">
+      <button type="submit" class="admin-btn admin-btn-primary">
+        保存设置
+      </button>
+    </div>
+  </form>
+</AdminLayout>

@@ -1,0 +1,280 @@
+---
+// src/pages/admin/authors.astro
+// 作者管理
+
+export const prerender = false;
+
+import AdminLayout from '@layouts/AdminLayout.astro';
+import { db } from '@lib/db';
+import { authors, articles } from '@lib/db/schema';
+import { eq } from 'drizzle-orm';
+
+const title = '作者管理';
+
+// 获取所有作者
+const allAuthors = await db.select().from(authors);
+
+// 获取每个作者的文章数量
+const authorsWithCount = await Promise.all(
+  allAuthors.map(async (author) => {
+    const authorArticles = await db.select().from(articles).where(eq(articles.authorId, author.id));
+    return {
+      ...author,
+      articleCount: authorArticles.length,
+      expertiseList: author.expertise ? JSON.parse(author.expertise) : [],
+    };
+  })
+);
+
+// 检查消息
+const successMessage = Astro.url.searchParams.get('success');
+const errorMessage = Astro.url.searchParams.get('error');
+---
+
+<AdminLayout title={title}>
+  <!-- 消息提示 -->
+  {successMessage && (
+    <div class="mb-4 p-4 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg">
+      {successMessage === 'created' && '作者创建成功！'}
+      {successMessage === 'updated' && '作者更新成功！'}
+      {successMessage === 'deleted' && '作者删除成功！'}
+    </div>
+  )}
+  {errorMessage && (
+    <div class="mb-4 p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg">
+      {errorMessage === 'slug-exists' && 'URL Slug 已存在，请使用其他名称。'}
+      {errorMessage === 'save-failed' && '保存失败，请重试。'}
+      {errorMessage === 'not-found' && '作者不存在。'}
+    </div>
+  )}
+
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">作者列表</h2>
+    <button 
+      class="admin-btn admin-btn-primary"
+      onclick="document.getElementById('add-modal').classList.remove('hidden')"
+    >
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      新建作者
+    </button>
+  </div>
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {authorsWithCount.map((author) => (
+      <div class="admin-card">
+        <div class="flex items-start gap-4">
+          <div class="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 text-xl font-bold flex-shrink-0">
+            {author.avatar ? (
+              <img src={author.avatar} alt={author.name} class="w-full h-full rounded-full object-cover" />
+            ) : (
+              author.name.charAt(0)
+            )}
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-semibold text-gray-900 dark:text-white">{author.name}</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">/{author.slug}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">{author.bio || '暂无简介'}</p>
+            {author.expertiseList.length > 0 && (
+              <div class="flex flex-wrap gap-1 mt-2">
+                {author.expertiseList.map((exp: string) => (
+                  <span class="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-400">
+                    {exp}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+          <span class="text-sm text-gray-400 flex-shrink-0">{author.articleCount} 篇文章</span>
+        </div>
+        <div class="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <button 
+            class="text-sm text-primary-600 dark:text-primary-400 hover:underline edit-btn"
+            data-id={author.id}
+            data-name={author.name}
+            data-slug={author.slug}
+            data-bio={author.bio || ''}
+            data-avatar={author.avatar || ''}
+            data-expertise={author.expertiseList.join(', ')}
+          >
+            编辑
+          </button>
+          {author.articleCount === 0 && (
+            <button 
+              class="text-sm text-red-600 dark:text-red-400 hover:underline delete-btn"
+              data-id={author.id}
+            >
+              删除
+            </button>
+          )}
+        </div>
+      </div>
+    ))}
+  </div>
+  
+  {authorsWithCount.length === 0 && (
+    <div class="admin-card text-center py-12 text-gray-500 dark:text-gray-400">
+      <p>暂无作者</p>
+    </div>
+  )}
+  
+  <!-- 新建作者弹窗 -->
+  <div id="add-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">新建作者</h3>
+      <form action="/api/admin/authors" method="POST" class="space-y-4">
+        <div class="admin-form-group">
+          <label class="admin-label">作者名称 *</label>
+          <input type="text" name="name" required class="admin-input" id="add-name" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">Slug *</label>
+          <input type="text" name="slug" required class="admin-input" id="add-slug" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">简介</label>
+          <textarea name="bio" rows="2" class="admin-input"></textarea>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">头像 URL</label>
+          <input type="text" name="avatar" class="admin-input" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">专业领域（逗号分隔）</label>
+          <input type="text" name="expertise" class="admin-input" placeholder="Technology, Productivity" />
+        </div>
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" onclick="document.getElementById('add-modal').classList.add('hidden')" class="admin-btn admin-btn-secondary">
+            取消
+          </button>
+          <button type="submit" class="admin-btn admin-btn-primary">
+            保存
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- 编辑作者弹窗 -->
+  <div id="edit-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">编辑作者</h3>
+      <form id="edit-form" class="space-y-4">
+        <input type="hidden" name="id" id="edit-id" />
+        <div class="admin-form-group">
+          <label class="admin-label">作者名称 *</label>
+          <input type="text" name="name" required class="admin-input" id="edit-name" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">Slug *</label>
+          <input type="text" name="slug" required class="admin-input" id="edit-slug" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">简介</label>
+          <textarea name="bio" rows="2" class="admin-input" id="edit-bio"></textarea>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">头像 URL</label>
+          <input type="text" name="avatar" class="admin-input" id="edit-avatar" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">专业领域（逗号分隔）</label>
+          <input type="text" name="expertise" class="admin-input" id="edit-expertise" placeholder="Technology, Productivity" />
+        </div>
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" onclick="document.getElementById('edit-modal').classList.add('hidden')" class="admin-btn admin-btn-secondary">
+            取消
+          </button>
+          <button type="submit" class="admin-btn admin-btn-primary">
+            保存
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  // 名称自动生成 slug（新建）
+  const addNameInput = document.getElementById('add-name') as HTMLInputElement;
+  const addSlugInput = document.getElementById('add-slug') as HTMLInputElement;
+  
+  addNameInput?.addEventListener('input', () => {
+    if (!addSlugInput.value) {
+      addSlugInput.value = addNameInput.value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+    }
+  });
+  
+  // 编辑按钮
+  document.querySelectorAll('.edit-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = (btn as HTMLElement).getAttribute('data-id');
+      const name = (btn as HTMLElement).getAttribute('data-name');
+      const slug = (btn as HTMLElement).getAttribute('data-slug');
+      const bio = (btn as HTMLElement).getAttribute('data-bio');
+      const avatar = (btn as HTMLElement).getAttribute('data-avatar');
+      const expertise = (btn as HTMLElement).getAttribute('data-expertise');
+      
+      (document.getElementById('edit-id') as HTMLInputElement).value = id || '';
+      (document.getElementById('edit-name') as HTMLInputElement).value = name || '';
+      (document.getElementById('edit-slug') as HTMLInputElement).value = slug || '';
+      (document.getElementById('edit-bio') as HTMLTextAreaElement).value = bio || '';
+      (document.getElementById('edit-avatar') as HTMLInputElement).value = avatar || '';
+      (document.getElementById('edit-expertise') as HTMLInputElement).value = expertise || '';
+      
+      document.getElementById('edit-modal')?.classList.remove('hidden');
+    });
+  });
+  
+  // 编辑表单提交
+  document.getElementById('edit-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const form = e.target as HTMLFormElement;
+    const id = (document.getElementById('edit-id') as HTMLInputElement).value;
+    const formData = new FormData(form);
+    
+    try {
+      const response = await fetch(`/api/admin/authors/${id}`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.redirected) {
+        window.location.href = response.url;
+      } else {
+        window.location.href = '/admin/authors?success=updated';
+      }
+    } catch (error) {
+      alert('保存失败，请重试。');
+    }
+  });
+  
+  // 删除按钮
+  document.querySelectorAll('.delete-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLElement).getAttribute('data-id');
+      
+      if (confirm('确定要删除这个作者吗？')) {
+        try {
+          const response = await fetch(`/api/admin/authors/${id}`, {
+            method: 'DELETE',
+          });
+          const result = await response.json();
+          
+          if (result.success) {
+            window.location.href = '/admin/authors?success=deleted';
+          } else {
+            alert('删除失败：' + (result.error || '未知错误'));
+          }
+        } catch (error) {
+          alert('删除失败，请重试。');
+        }
+      }
+    });
+  });
+</script>

@@ -1,0 +1,409 @@
+---
+// src/pages/admin/articles/new.astro
+// 新建文章页面
+
+export const prerender = false;
+
+import AdminLayout from '@layouts/AdminLayout.astro';
+import { db } from '@lib/db';
+import { authors } from '@lib/db/schema';
+
+const title = '新建文章';
+
+// 分类列表
+const categories = [
+  { slug: 'guides', name: 'Guides' },
+  { slug: 'reviews', name: 'Reviews' },
+  { slug: 'tips', name: 'Tips' },
+  { slug: 'resources', name: 'Resources' },
+];
+
+// 获取作者列表
+const authorList = await db.select().from(authors);
+
+// 检查错误消息
+const errorMessage = Astro.url.searchParams.get('error');
+---
+
+<AdminLayout title={title}>
+  <!-- 错误提示 -->
+  {errorMessage && (
+    <div class="mb-6 p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg">
+      {errorMessage === 'slug-exists' && 'URL Slug 已存在，请使用其他名称。'}
+      {errorMessage === 'save-failed' && '保存失败，请重试。'}
+    </div>
+  )}
+
+  <form action="/api/admin/articles" method="POST" class="max-w-4xl">
+    <!-- 基本信息 -->
+    <div class="admin-card mb-6">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">基本信息</h2>
+      
+      <div class="admin-form-group">
+        <label for="title" class="admin-label">文章标题 *</label>
+        <input 
+          type="text" 
+          id="title" 
+          name="title" 
+          required
+          class="admin-input"
+          placeholder="输入文章标题"
+        />
+      </div>
+      
+      <div class="grid grid-cols-2 gap-4">
+        <div class="admin-form-group">
+          <label for="slug" class="admin-label">URL Slug *</label>
+          <input 
+            type="text" 
+            id="slug" 
+            name="slug" 
+            required
+            class="admin-input"
+            placeholder="article-url-slug"
+          />
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            文章 URL 路径，如: getting-started-guide
+          </p>
+        </div>
+        
+        <div class="admin-form-group">
+          <label for="category" class="admin-label">分类 *</label>
+          <select id="category" name="category" required class="admin-input">
+            <option value="">选择分类</option>
+            {categories.map((cat) => (
+              <option value={cat.slug}>{cat.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      
+      <div class="admin-form-group">
+        <label for="description" class="admin-label">文章摘要 *</label>
+        <textarea 
+          id="description" 
+          name="description" 
+          rows="3"
+          required
+          class="admin-input"
+          placeholder="简短描述文章内容（用于 SEO 和文章卡片显示，最多 160 字符）"
+          maxlength="160"
+        ></textarea>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          <span id="description-count">0</span>/160 字符
+        </p>
+      </div>
+    </div>
+    
+    <!-- 文章内容 -->
+    <div class="admin-card mb-6">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">文章内容</h2>
+      
+      <div class="admin-form-group">
+        <label for="content" class="admin-label">正文内容 (Markdown) *</label>
+        <div class="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+          <!-- 工具栏 -->
+          <div class="flex items-center gap-1 p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-600">
+            <button type="button" class="editor-btn" data-action="bold" title="粗体">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h9a4 4 0 014 4 4 4 0 01-4 4H6z"/>
+              </svg>
+            </button>
+            <button type="button" class="editor-btn" data-action="italic" title="斜体">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 4h4m-2 0v16m-4 0h8"/>
+              </svg>
+            </button>
+            <div class="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+            <button type="button" class="editor-btn" data-action="h2" title="标题 2">H2</button>
+            <button type="button" class="editor-btn" data-action="h3" title="标题 3">H3</button>
+            <div class="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+            <button type="button" class="editor-btn" data-action="ul" title="无序列表">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+            </button>
+            <button type="button" class="editor-btn" data-action="ol" title="有序列表">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
+              </svg>
+            </button>
+            <button type="button" class="editor-btn" data-action="link" title="链接">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+              </svg>
+            </button>
+            <button type="button" class="editor-btn" data-action="image" title="图片">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            </button>
+            <button type="button" class="editor-btn" data-action="code" title="代码块">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+              </svg>
+            </button>
+          </div>
+          <!-- 编辑区 -->
+          <textarea 
+            id="content" 
+            name="content" 
+            rows="20"
+            required
+            class="w-full p-4 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none focus:outline-none font-mono"
+            placeholder="使用 Markdown 格式编写文章内容..."
+          ></textarea>
+        </div>
+      </div>
+      
+      <div class="admin-form-group">
+        <label for="heroImage" class="admin-label">封面图片 URL</label>
+        <input 
+          type="text" 
+          id="heroImage" 
+          name="heroImage"
+          class="admin-input"
+          placeholder="/images/cover.jpg 或完整 URL"
+        />
+      </div>
+    </div>
+    
+    <!-- SEO 设置 -->
+    <div class="admin-card mb-6">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">SEO 设置</h2>
+      
+      <div class="admin-form-group">
+        <label for="metaTitle" class="admin-label">SEO 标题</label>
+        <input 
+          type="text" 
+          id="metaTitle" 
+          name="metaTitle"
+          class="admin-input"
+          placeholder="留空则使用文章标题"
+          maxlength="60"
+        />
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">最多 60 字符</p>
+      </div>
+      
+      <div class="admin-form-group">
+        <label for="metaDescription" class="admin-label">SEO 描述</label>
+        <textarea 
+          id="metaDescription" 
+          name="metaDescription" 
+          rows="2"
+          class="admin-input"
+          placeholder="留空则使用文章摘要"
+          maxlength="160"
+        ></textarea>
+      </div>
+      
+      <div class="admin-form-group">
+        <label for="canonical" class="admin-label">Canonical URL</label>
+        <input 
+          type="text" 
+          id="canonical" 
+          name="canonical"
+          class="admin-input"
+          placeholder="留空则自动生成"
+        />
+      </div>
+    </div>
+    
+    <!-- 发布设置 -->
+    <div class="admin-card mb-6">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">发布设置</h2>
+      
+      <div class="grid grid-cols-3 gap-4">
+        <div class="admin-form-group">
+          <label for="status" class="admin-label">状态</label>
+          <select id="status" name="status" class="admin-input">
+            <option value="draft">草稿</option>
+            <option value="published">立即发布</option>
+            <option value="scheduled">定时发布</option>
+          </select>
+        </div>
+        
+        <div class="admin-form-group">
+          <label for="authorId" class="admin-label">作者</label>
+          <select id="authorId" name="authorId" class="admin-input">
+            {authorList.map((author) => (
+              <option value={author.id}>{author.name}</option>
+            ))}
+          </select>
+        </div>
+        
+        <div class="admin-form-group">
+          <label for="featured" class="admin-label">推荐文章</label>
+          <select id="featured" name="featured" class="admin-input">
+            <option value="false">否</option>
+            <option value="true">是</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- 定时发布设置 -->
+      <div id="scheduleSettings" class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hidden">
+        <div class="flex items-center gap-2 mb-3">
+          <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span class="font-medium text-blue-700 dark:text-blue-300">定时发布</span>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="admin-form-group mb-0">
+            <label for="scheduledDate" class="admin-label">发布日期</label>
+            <input 
+              type="date" 
+              id="scheduledDate" 
+              name="scheduledDate"
+              class="admin-input"
+            />
+          </div>
+          <div class="admin-form-group mb-0">
+            <label for="scheduledTime" class="admin-label">发布时间</label>
+            <input 
+              type="time" 
+              id="scheduledTime" 
+              name="scheduledTime"
+              class="admin-input"
+              value="09:00"
+            />
+          </div>
+        </div>
+        <p class="text-xs text-blue-600 dark:text-blue-400 mt-2">
+          文章将在指定时间自动发布。请使用本地时间。
+        </p>
+      </div>
+    </div>
+    
+    <!-- 操作按钮 -->
+    <div class="flex items-center gap-4">
+      <button type="submit" class="admin-btn admin-btn-primary">
+        保存文章
+      </button>
+      <a href="/admin/articles" class="admin-btn admin-btn-secondary">
+        取消
+      </a>
+    </div>
+  </form>
+</AdminLayout>
+
+<style>
+  .editor-btn {
+    @apply p-2 rounded text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors;
+  }
+</style>
+
+<script>
+  // 标题自动生成 slug
+  const titleInput = document.getElementById('title') as HTMLInputElement;
+  const slugInput = document.getElementById('slug') as HTMLInputElement;
+  
+  titleInput?.addEventListener('input', () => {
+    if (!slugInput.value) {
+      slugInput.value = titleInput.value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+    }
+  });
+  
+  // 摘要字数统计
+  const descInput = document.getElementById('description') as HTMLTextAreaElement;
+  const descCount = document.getElementById('description-count');
+  
+  descInput?.addEventListener('input', () => {
+    descCount!.textContent = descInput.value.length.toString();
+  });
+  
+  // 定时发布控制
+  const statusSelect = document.getElementById('status') as HTMLSelectElement;
+  const scheduleSettings = document.getElementById('scheduleSettings');
+  const scheduledDate = document.getElementById('scheduledDate') as HTMLInputElement;
+  
+  // 设置默认日期为明天
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  scheduledDate!.min = new Date().toISOString().split('T')[0];
+  scheduledDate!.value = tomorrow.toISOString().split('T')[0];
+  
+  statusSelect?.addEventListener('change', () => {
+    if (statusSelect.value === 'scheduled') {
+      scheduleSettings!.classList.remove('hidden');
+    } else {
+      scheduleSettings!.classList.add('hidden');
+    }
+  });
+  
+  // 编辑器工具栏
+  const contentArea = document.getElementById('content') as HTMLTextAreaElement;
+  
+  document.querySelectorAll('[data-action]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const action = (btn as HTMLElement).getAttribute('data-action');
+      const start = contentArea.selectionStart;
+      const end = contentArea.selectionEnd;
+      const selected = contentArea.value.substring(start, end);
+      
+      const actions: Record<string, [string, string]> = {
+        bold: ['**', '**'],
+        italic: ['*', '*'],
+        h2: ['## ', ''],
+        h3: ['### ', ''],
+        ul: ['- ', ''],
+        ol: ['1. ', ''],
+        link: ['[', '](url)'],
+        image: ['![alt](', ')'],
+        code: ['```\n', '\n```'],
+      };
+      
+      if (actions[action!]) {
+        const [before, after] = actions[action!];
+        contentArea.value = 
+          contentArea.value.substring(0, start) + 
+          before + selected + after + 
+          contentArea.value.substring(end);
+        contentArea.focus();
+      }
+    });
+  });
+  
+  // 表单提交处理
+  const form = document.querySelector('form[action="/api/admin/articles"]') as HTMLFormElement;
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = '保存中...';
+    submitBtn.disabled = true;
+    
+    try {
+      const response = await fetch('/api/admin/articles', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      
+      const result = await response.json();
+      
+      if (result.success && result.redirect) {
+        window.location.href = result.redirect;
+      } else if (result.error) {
+        alert(result.message || '保存失败：' + result.error);
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      } else {
+        alert('保存失败，请重试。');
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
+    } catch (error) {
+      console.error('Submit error:', error);
+      alert('保存失败，请重试。');
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+    }
+  });
+</script>

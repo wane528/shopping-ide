@@ -1,0 +1,147 @@
+---
+// src/layouts/BaseLayout.astro
+import Header from '@components/common/Header.astro';
+import Footer from '@components/common/Footer.astro';
+import ReadingProgress from '@components/common/ReadingProgress.astro';
+import BackToTop from '@components/common/BackToTop.astro';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description,
+  canonical,
+  image = '/images/og-default.jpg',
+  type = 'website',
+  noindex = false,
+} = Astro.props;
+
+const siteName = 'GoodSetup';
+// 使用环境变量配置域名，开发环境默认使用 localhost
+const siteUrl = import.meta.env.SITE_URL || 'http://localhost:4321';
+// Google Analytics ID（仅在配置时启用）
+const gaMeasurementId = import.meta.env.GA_MEASUREMENT_ID;
+const fullTitle = title === siteName ? title : `${title} | ${siteName}`;
+const fullImageUrl = image.startsWith('http') ? image : `${siteUrl}${image}`;
+const canonicalUrl = canonical || `${siteUrl}${Astro.url.pathname}`;
+const robots = noindex ? 'noindex, nofollow' : 'index, follow';
+
+const currentPath = Astro.url.pathname;
+
+// Theme script (prevents flash)
+const themeScript = `
+  (function() {
+    const theme = localStorage.getItem('theme') || 
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  })();
+`;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content={Astro.generator}>
+  
+  <!-- Primary Meta Tags -->
+  <title>{fullTitle}</title>
+  <meta name="title" content={fullTitle}>
+  <meta name="description" content={description}>
+  <meta name="robots" content={robots}>
+  <link rel="canonical" href={canonicalUrl}>
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content={type}>
+  <meta property="og:title" content={fullTitle}>
+  <meta property="og:description" content={description}>
+  <meta property="og:url" content={canonicalUrl}>
+  <meta property="og:site_name" content={siteName}>
+  <meta property="og:image" content={fullImageUrl}>
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content={fullTitle}>
+  <meta name="twitter:description" content={description}>
+  <meta name="twitter:image" content={fullImageUrl}>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  
+  <!-- Fonts - Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Theme Script (prevents flash) -->
+  <script is:inline set:html={themeScript} />
+  
+  <!-- Google Analytics (only if configured) -->
+  {gaMeasurementId && (
+    <>
+      <script is:inline src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`} async></script>
+      <script is:inline set:html={`
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '${gaMeasurementId}');
+      `} />
+    </>
+  )}
+  
+  <!-- WebSite Schema -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": siteName,
+    "url": siteUrl,
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": `${siteUrl}/search?q={search_term_string}`,
+      "query-input": "required name=search_term_string"
+    }
+  })} />
+  
+  <!-- Organization Schema -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": siteName,
+    "url": siteUrl,
+    "logo": `${siteUrl}/favicon.svg`,
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "email": "goodsetup@pronto.me",
+      "contactType": "customer service"
+    }
+  })} />
+</head>
+<body class="min-h-screen flex flex-col">
+  <!-- Reading Progress -->
+  <ReadingProgress />
+  
+  <!-- Header -->
+  <Header currentPath={currentPath} />
+  
+  <!-- Main Content -->
+  <main class="flex-1">
+    <slot />
+  </main>
+  
+  <!-- Footer -->
+  <Footer />
+  
+  <!-- Back to Top Button -->
+  <BackToTop />
+</body>
+</html>

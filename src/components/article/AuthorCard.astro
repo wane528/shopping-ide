@@ -1,0 +1,60 @@
+---
+// src/components/article/AuthorCard.astro
+interface Props {
+  name: string;
+  bio?: string;
+  avatar?: string;
+  twitter?: string;
+  website?: string;
+}
+
+const { name, bio, avatar, twitter, website } = Astro.props;
+---
+
+<div class="flex items-start gap-4 p-6 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
+  <div class="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0 overflow-hidden">
+    {avatar ? (
+      <img src={avatar} alt={name} class="w-full h-full object-cover" />
+    ) : (
+      <span class="text-primary-600 dark:text-primary-400 font-semibold text-lg">
+        {name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+      </span>
+    )}
+  </div>
+  <div class="flex-1 min-w-0">
+    <h4 class="font-semibold text-gray-900 dark:text-white mb-1">
+      {name}
+    </h4>
+    {bio && (
+      <p class="text-body-s text-gray-600 dark:text-gray-400 mb-2">
+        {bio}
+      </p>
+    )}
+    <div class="flex items-center gap-3">
+      {twitter && (
+        <a 
+          href={`https://twitter.com/${twitter}`} 
+          target="_blank" 
+          rel="noopener"
+          class="text-gray-400 hover:text-primary-500 transition-colors"
+        >
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+        </a>
+      )}
+      {website && (
+        <a 
+          href={website} 
+          target="_blank" 
+          rel="noopener"
+          class="text-gray-400 hover:text-primary-500 transition-colors"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+          </svg>
+        </a>
+      )}
+    </div>
+  </div>
+</div>

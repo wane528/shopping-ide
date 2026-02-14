@@ -1,0 +1,72 @@
+---
+// src/pages/index.astro
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Hero from '@components/home/Hero.astro';
+import CategoryGrid from '@components/home/CategoryGrid.astro';
+import FeaturedGrid from '@components/home/FeaturedGrid.astro';
+import Newsletter from '@components/common/Newsletter.astro';
+import TrustBadge from '@components/common/TrustBadge.astro';
+import { db } from '@lib/db';
+import { articles } from '@lib/db/schema';
+import { eq, desc } from 'drizzle-orm';
+
+export const prerender = false;
+
+const title = 'GoodSetup';
+const description = 'Your guide to better setups - quality content, honest reviews, practical tips, and curated resources.';
+
+// 从数据库获取精选文章
+let featuredArticles: any[] = [];
+try {
+  const publishedArticles = await db
+    .select()
+    .from(articles)
+    .where(eq(articles.status, 'published'))
+    .orderBy(desc(articles.publishedAt))
+    .limit(3);
+  
+  featuredArticles = publishedArticles.map(a => ({
+    title: a.title,
+    slug: a.slug,
+    category: a.category,
+    description: a.description,
+    readingTime: a.readingTime || 5,
+    publishedAt: a.publishedAt || '',
+    featured: a.featured,
+  }));
+} catch (error) {
+  console.error('Error fetching featured articles:', error);
+}
+
+// 如果没有文章，显示占位
+if (featuredArticles.length === 0) {
+  featuredArticles = [
+    {
+      title: 'Getting Started Guide',
+      slug: 'getting-started-guide',
+      category: 'guides',
+      description: 'Everything you need to know to get started.',
+      readingTime: 10,
+      publishedAt: new Date().toISOString(),
+      featured: true,
+    },
+  ];
+}
+---
+
+<BaseLayout title={title} description={description}>
+  <!-- Hero Section -->
+  <Hero />
+  
+  <!-- Categories Section -->
+  <CategoryGrid />
+  
+  <!-- Featured Articles Section -->
+  <FeaturedGrid articles={featuredArticles} />
+  
+  <!-- Newsletter Section -->
+  <Newsletter />
+  
+  <!-- Trust Indicators -->
+  <TrustBadge />
+</BaseLayout>

@@ -1,0 +1,241 @@
+---
+// src/pages/admin/tags.astro
+// 标签管理
+
+export const prerender = false;
+
+import AdminLayout from '@layouts/AdminLayout.astro';
+import { db } from '@lib/db';
+import { tags, articleTags } from '@lib/db/schema';
+import { eq } from 'drizzle-orm';
+
+const title = '标签管理';
+
+// 获取所有标签
+const allTags = await db.select().from(tags);
+
+// 获取每个标签的文章数量
+const tagsWithCount = await Promise.all(
+  allTags.map(async (tag) => {
+    const count = await db.select().from(articleTags).where(eq(articleTags.tagId, tag.id));
+    return {
+      ...tag,
+      articleCount: count.length,
+    };
+  })
+);
+
+// 检查消息
+const successMessage = Astro.url.searchParams.get('success');
+const errorMessage = Astro.url.searchParams.get('error');
+---
+
+<AdminLayout title={title}>
+  <!-- 消息提示 -->
+  {successMessage && (
+    <div class="mb-4 p-4 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg">
+      {successMessage === 'created' && '标签创建成功！'}
+      {successMessage === 'updated' && '标签更新成功！'}
+      {successMessage === 'deleted' && '标签删除成功！'}
+    </div>
+  )}
+  {errorMessage && (
+    <div class="mb-4 p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg">
+      {errorMessage === 'slug-exists' && 'URL Slug 已存在，请使用其他名称。'}
+      {errorMessage === 'save-failed' && '保存失败，请重试。'}
+      {errorMessage === 'not-found' && '标签不存在。'}
+    </div>
+  )}
+
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">标签列表</h2>
+    <button 
+      class="admin-btn admin-btn-primary"
+      onclick="document.getElementById('add-modal').classList.remove('hidden')"
+    >
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      新建标签
+    </button>
+  </div>
+  
+  <div class="admin-card">
+    {tagsWithCount.length === 0 ? (
+      <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+        <p>暂无标签</p>
+      </div>
+    ) : (
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>标签名称</th>
+            <th>Slug</th>
+            <th>文章数</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          {tagsWithCount.map((tag) => (
+            <tr>
+              <td>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                  {tag.name}
+                </span>
+              </td>
+              <td class="text-gray-500 dark:text-gray-400">{tag.slug}</td>
+              <td>{tag.articleCount}</td>
+              <td>
+                <div class="flex items-center gap-2">
+                  <button 
+                    class="text-sm text-primary-600 dark:text-primary-400 hover:underline edit-btn"
+                    data-id={tag.id}
+                    data-name={tag.name}
+                    data-slug={tag.slug}
+                  >
+                    编辑
+                  </button>
+                  <button 
+                    class="text-sm text-red-600 dark:text-red-400 hover:underline delete-btn"
+                    data-id={tag.id}
+                  >
+                    删除
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+  
+  <!-- 新建标签弹窗 -->
+  <div id="add-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">新建标签</h3>
+      <form action="/api/admin/tags" method="POST" class="space-y-4">
+        <div class="admin-form-group">
+          <label class="admin-label">标签名称 *</label>
+          <input type="text" name="name" required class="admin-input" id="add-name" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">Slug *</label>
+          <input type="text" name="slug" required class="admin-input" id="add-slug" />
+        </div>
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" onclick="document.getElementById('add-modal').classList.add('hidden')" class="admin-btn admin-btn-secondary">
+            取消
+          </button>
+          <button type="submit" class="admin-btn admin-btn-primary">
+            保存
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- 编辑标签弹窗 -->
+  <div id="edit-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">编辑标签</h3>
+      <form id="edit-form" class="space-y-4">
+        <input type="hidden" name="id" id="edit-id" />
+        <div class="admin-form-group">
+          <label class="admin-label">标签名称 *</label>
+          <input type="text" name="name" required class="admin-input" id="edit-name" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">Slug *</label>
+          <input type="text" name="slug" required class="admin-input" id="edit-slug" />
+        </div>
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" onclick="document.getElementById('edit-modal').classList.add('hidden')" class="admin-btn admin-btn-secondary">
+            取消
+          </button>
+          <button type="submit" class="admin-btn admin-btn-primary">
+            保存
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  // 名称自动生成 slug（新建）
+  const addNameInput = document.getElementById('add-name') as HTMLInputElement;
+  const addSlugInput = document.getElementById('add-slug') as HTMLInputElement;
+  
+  addNameInput?.addEventListener('input', () => {
+    if (!addSlugInput.value) {
+      addSlugInput.value = addNameInput.value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+    }
+  });
+  
+  // 编辑按钮
+  document.querySelectorAll('.edit-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = (btn as HTMLElement).getAttribute('data-id');
+      const name = (btn as HTMLElement).getAttribute('data-name');
+      const slug = (btn as HTMLElement).getAttribute('data-slug');
+      
+      (document.getElementById('edit-id') as HTMLInputElement).value = id || '';
+      (document.getElementById('edit-name') as HTMLInputElement).value = name || '';
+      (document.getElementById('edit-slug') as HTMLInputElement).value = slug || '';
+      
+      document.getElementById('edit-modal')?.classList.remove('hidden');
+    });
+  });
+  
+  // 编辑表单提交
+  document.getElementById('edit-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const form = e.target as HTMLFormElement;
+    const id = (document.getElementById('edit-id') as HTMLInputElement).value;
+    const formData = new FormData(form);
+    
+    try {
+      const response = await fetch(`/api/admin/tags/${id}`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.redirected) {
+        window.location.href = response.url;
+      } else {
+        window.location.href = '/admin/tags?success=updated';
+      }
+    } catch (error) {
+      alert('保存失败，请重试。');
+    }
+  });
+  
+  // 删除按钮
+  document.querySelectorAll('.delete-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLElement).getAttribute('data-id');
+      
+      if (confirm('确定要删除这个标签吗？')) {
+        try {
+          const response = await fetch(`/api/admin/tags/${id}`, {
+            method: 'DELETE',
+          });
+          const result = await response.json();
+          
+          if (result.success) {
+            window.location.href = '/admin/tags?success=deleted';
+          } else {
+            alert('删除失败：' + (result.error || '未知错误'));
+          }
+        } catch (error) {
+          alert('删除失败，请重试。');
+        }
+      }
+    });
+  });
+</script>

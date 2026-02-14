@@ -1,0 +1,88 @@
+---
+// src/components/article/FAQ.astro
+// FAQ 手风琴组件，支持 Schema 标记
+
+interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+interface Props {
+  items: FAQItem[];
+  title?: string;
+}
+
+const { items, title = 'Frequently Asked Questions' } = Astro.props;
+---
+
+<section class="faq-section">
+  <h2 class="text-h2 text-gray-900 dark:text-white mb-6">{title}</h2>
+  
+  <div class="space-y-3">
+    {items.map((item, index) => (
+      <details 
+        class="faq-item group"
+        data-faq-index={index}
+      >
+        <summary class="faq-question">
+          <span class="font-medium text-gray-900 dark:text-white">{item.question}</span>
+          <span class="faq-icon">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </span>
+        </summary>
+        <div class="faq-answer">
+          <p class="text-gray-600 dark:text-gray-400">{item.answer}</p>
+        </div>
+      </details>
+    ))}
+  </div>
+</section>
+
+<style>
+  .faq-item {
+    @apply bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden;
+    @apply transition-colors duration-200;
+  }
+  
+  .faq-item[open] {
+    @apply border-primary-300 dark:border-primary-700;
+  }
+  
+  .faq-question {
+    @apply flex items-center justify-between w-full px-5 py-4 cursor-pointer;
+    @apply select-none;
+    list-style: none;
+  }
+  
+  .faq-question::-webkit-details-marker {
+    display: none;
+  }
+  
+  .faq-icon {
+    @apply flex-shrink-0 ml-4 text-gray-400 dark:text-gray-500;
+    @apply transition-transform duration-300;
+  }
+  
+  .faq-item[open] .faq-icon {
+    @apply rotate-180 text-primary-500;
+  }
+  
+  .faq-answer {
+    @apply px-5 pb-4 pt-0;
+  }
+</style>
+
+<script>
+  // 键盘可访问性增强
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.addEventListener('keydown', (e: Event) => {
+      const event = e as KeyboardEvent;
+      if (event.key === 'Enter' || event.key === ' ') {
+        e.preventDefault();
+        (item as HTMLDetailsElement).open = !(item as HTMLDetailsElement).open;
+      }
+    });
+  });
+</script>

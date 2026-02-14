@@ -1,0 +1,277 @@
+---
+// src/pages/admin/categories.astro
+// 分类管理
+
+export const prerender = false;
+
+import AdminLayout from '@layouts/AdminLayout.astro';
+import { db } from '@lib/db';
+import { categories, articles } from '@lib/db/schema';
+import { desc, count, eq } from 'drizzle-orm';
+
+const title = '分类管理';
+
+// 获取所有分类
+const allCategories = await db
+  .select()
+  .from(categories)
+  .orderBy(desc(categories.order));
+
+// 获取每个分类的文章数量
+const articleCounts = await db
+  .select({
+    category: articles.category,
+    count: count(articles.id),
+  })
+  .from(articles)
+  .groupBy(articles.category);
+
+// 合并数据
+const categoriesWithCount = allCategories.map((cat) => {
+  const countData = articleCounts.find((c) => c.category === cat.slug);
+  return {
+    ...cat,
+    articleCount: countData?.count || 0,
+  };
+});
+
+const colorOptions = ['blue', 'green', 'orange', 'purple', 'red', 'pink', 'yellow'];
+
+// 检查消息
+const successMessage = Astro.url.searchParams.get('success');
+const errorMessage = Astro.url.searchParams.get('error');
+---
+
+<AdminLayout title={title}>
+  <!-- 消息提示 -->
+  {successMessage && (
+    <div class="mb-4 p-4 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg">
+      {successMessage === 'created' && '分类创建成功！'}
+      {successMessage === 'updated' && '分类更新成功！'}
+      {successMessage === 'deleted' && '分类删除成功！'}
+    </div>
+  )}
+  {errorMessage && (
+    <div class="mb-4 p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg">
+      {errorMessage === 'slug-exists' && 'URL Slug 已存在，请使用其他名称。'}
+      {errorMessage === 'save-failed' && '保存失败，请重试。'}
+      {errorMessage === 'not-found' && '分类不存在。'}
+    </div>
+  )}
+
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">分类列表</h2>
+    <button 
+      class="admin-btn admin-btn-primary"
+      onclick="document.getElementById('add-modal').classList.remove('hidden')"
+    >
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      新建分类
+    </button>
+  </div>
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {categoriesWithCount.map((cat) => (
+      <div class="admin-card">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-3">
+            <div class={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-medium bg-${cat.color}-500`}>
+              {cat.name.charAt(0)}
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-900 dark:text-white">{cat.name}</h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">/{cat.slug}</p>
+            </div>
+          </div>
+          <span class="text-xs text-gray-400">{cat.articleCount} 篇文章</span>
+        </div>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-3">{cat.description || '暂无描述'}</p>
+        <div class="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <button 
+            class="text-sm text-primary-600 dark:text-primary-400 hover:underline edit-btn"
+            data-id={cat.id}
+            data-name={cat.name}
+            data-slug={cat.slug}
+            data-description={cat.description || ''}
+            data-color={cat.color}
+          >
+            编辑
+          </button>
+          {cat.articleCount === 0 && (
+            <button 
+              class="text-sm text-red-600 dark:text-red-400 hover:underline delete-btn"
+              data-id={cat.id}
+            >
+              删除
+            </button>
+          )}
+        </div>
+      </div>
+    ))}
+  </div>
+  
+  {categoriesWithCount.length === 0 && (
+    <div class="admin-card text-center py-12 text-gray-500 dark:text-gray-400">
+      <p>暂无分类</p>
+    </div>
+  )}
+  
+  <!-- 新建分类弹窗 -->
+  <div id="add-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">新建分类</h3>
+      <form action="/api/admin/categories" method="POST" class="space-y-4">
+        <div class="admin-form-group">
+          <label class="admin-label">分类名称 *</label>
+          <input type="text" name="name" required class="admin-input" id="add-name" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">Slug *</label>
+          <input type="text" name="slug" required class="admin-input" id="add-slug" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">描述</label>
+          <textarea name="description" rows="2" class="admin-input"></textarea>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">颜色</label>
+          <select name="color" class="admin-input" id="add-color">
+            {colorOptions.map((color) => (
+              <option value={color} class="capitalize">{color}</option>
+            ))}
+          </select>
+        </div>
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" onclick="document.getElementById('add-modal').classList.add('hidden')" class="admin-btn admin-btn-secondary">
+            取消
+          </button>
+          <button type="submit" class="admin-btn admin-btn-primary">
+            保存
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- 编辑分类弹窗 -->
+  <div id="edit-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">编辑分类</h3>
+      <form id="edit-form" class="space-y-4">
+        <input type="hidden" name="id" id="edit-id" />
+        <div class="admin-form-group">
+          <label class="admin-label">分类名称 *</label>
+          <input type="text" name="name" required class="admin-input" id="edit-name" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">Slug *</label>
+          <input type="text" name="slug" required class="admin-input" id="edit-slug" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">描述</label>
+          <textarea name="description" rows="2" class="admin-input" id="edit-description"></textarea>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-label">颜色</label>
+          <select name="color" class="admin-input" id="edit-color">
+            {colorOptions.map((color) => (
+              <option value={color} class="capitalize">{color}</option>
+            ))}
+          </select>
+        </div>
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" onclick="document.getElementById('edit-modal').classList.add('hidden')" class="admin-btn admin-btn-secondary">
+            取消
+          </button>
+          <button type="submit" class="admin-btn admin-btn-primary">
+            保存
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  // 名称自动生成 slug（新建）
+  const addNameInput = document.getElementById('add-name') as HTMLInputElement;
+  const addSlugInput = document.getElementById('add-slug') as HTMLInputElement;
+  
+  addNameInput?.addEventListener('input', () => {
+    if (!addSlugInput.value) {
+      addSlugInput.value = addNameInput.value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+    }
+  });
+  
+  // 编辑按钮
+  document.querySelectorAll('.edit-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = (btn as HTMLElement).getAttribute('data-id');
+      const name = (btn as HTMLElement).getAttribute('data-name');
+      const slug = (btn as HTMLElement).getAttribute('data-slug');
+      const description = (btn as HTMLElement).getAttribute('data-description');
+      const color = (btn as HTMLElement).getAttribute('data-color');
+      
+      (document.getElementById('edit-id') as HTMLInputElement).value = id || '';
+      (document.getElementById('edit-name') as HTMLInputElement).value = name || '';
+      (document.getElementById('edit-slug') as HTMLInputElement).value = slug || '';
+      (document.getElementById('edit-description') as HTMLTextAreaElement).value = description || '';
+      (document.getElementById('edit-color') as HTMLSelectElement).value = color || 'blue';
+      
+      document.getElementById('edit-modal')?.classList.remove('hidden');
+    });
+  });
+  
+  // 编辑表单提交
+  document.getElementById('edit-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const form = e.target as HTMLFormElement;
+    const id = (document.getElementById('edit-id') as HTMLInputElement).value;
+    const formData = new FormData(form);
+    
+    try {
+      const response = await fetch(`/api/admin/categories/${id}`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.redirected) {
+        window.location.href = response.url;
+      } else {
+        window.location.href = '/admin/categories?success=updated';
+      }
+    } catch (error) {
+      alert('保存失败，请重试。');
+    }
+  });
+  
+  // 删除按钮
+  document.querySelectorAll('.delete-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLElement).getAttribute('data-id');
+      
+      if (confirm('确定要删除这个分类吗？')) {
+        try {
+          const response = await fetch(`/api/admin/categories/${id}`, {
+            method: 'DELETE',
+          });
+          const result = await response.json();
+          
+          if (result.success) {
+            window.location.href = '/admin/categories?success=deleted';
+          } else {
+            alert('删除失败：' + (result.error || '未知错误'));
+          }
+        } catch (error) {
+          alert('删除失败，请重试。');
+        }
+      }
+    });
+  });
+</script>

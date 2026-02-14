@@ -1,0 +1,36 @@
+---
+// src/components/common/TrustBadge.astro
+const badges = [
+  {
+    icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>`,
+    text: 'Fact-Checked Content'
+  },
+  {
+    icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>`,
+    text: 'Regularly Updated'
+  },
+  {
+    icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+    </svg>`,
+    text: 'Reader-Focused'
+  },
+];
+---
+
+<section class="section-sm bg-gray-50 dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800">
+  <div class="container-content">
+    <div class="flex flex-wrap items-center justify-center gap-8 md:gap-16">
+      {badges.map((badge) => (
+        <div class="trust-badge">
+          <Fragment set:html={badge.icon} />
+          <span>{badge.text}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

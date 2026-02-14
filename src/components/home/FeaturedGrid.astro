@@ -1,0 +1,53 @@
+---
+// src/components/home/FeaturedGrid.astro
+import ArticleCard from '@components/article/ArticleCard.astro';
+
+interface Article {
+  title: string;
+  slug: string;
+  category: string;
+  description: string;
+  readingTime: number;
+  publishedAt: string;
+}
+
+interface Props {
+  articles: Article[];
+}
+
+const { articles } = Astro.props;
+---
+
+<section class="section bg-white dark:bg-gray-900">
+  <div class="container-content">
+    <div class="flex items-end justify-between mb-8">
+      <div>
+        <h2 class="text-h1 text-gray-900 dark:text-white mb-2">
+          Featured Articles
+        </h2>
+        <p class="text-body-s text-gray-500 dark:text-gray-400">
+          Hand-picked content worth your time
+        </p>
+      </div>
+      <a href="/category/guides" class="hidden sm:flex items-center text-body-s font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
+        View all
+        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {articles.map((article) => (
+        <ArticleCard {...article} />
+      ))}
+    </div>
+    
+    <!-- Mobile view all -->
+    <div class="mt-8 text-center sm:hidden">
+      <a href="/category/guides" class="btn btn-secondary">
+        View All Articles
+      </a>
+    </div>
+  </div>
+</section>

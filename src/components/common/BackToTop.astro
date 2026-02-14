@@ -1,0 +1,47 @@
+---
+// src/components/common/BackToTop.astro
+---
+
+<button
+  id="back-to-top"
+  class="fixed bottom-6 right-6 z-40 w-10 h-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full shadow-md flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:border-primary-300 dark:hover:border-primary-700 transition-all opacity-0 pointer-events-none"
+  aria-label="Back to top"
+>
+  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+  </svg>
+</button>
+
+<script>
+  const backToTop = document.getElementById('back-to-top');
+  const threshold = 500;
+  
+  function toggleButton() {
+    if (!backToTop) return;
+    
+    if (window.scrollY > threshold) {
+      backToTop.classList.remove('opacity-0', 'pointer-events-none');
+      backToTop.classList.add('opacity-100', 'pointer-events-auto');
+    } else {
+      backToTop.classList.add('opacity-0', 'pointer-events-none');
+      backToTop.classList.remove('opacity-100', 'pointer-events-auto');
+    }
+  }
+  
+  // 初始化
+  toggleButton();
+  
+  // 滚动监听
+  window.addEventListener('scroll', toggleButton, { passive: true });
+  
+  // 点击事件
+  backToTop?.addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+  
+  // 页面切换后重新初始化
+  document.addEventListener('astro:page-load', toggleButton);
+</script>

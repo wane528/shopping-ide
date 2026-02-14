@@ -1,0 +1,77 @@
+---
+// src/components/article/TableOfContents.astro
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+
+// 只显示 h2 和 h3
+const toc = headings.filter(h => h.depth >= 2 && h.depth <= 3);
+---
+
+{toc.length > 0 && (
+  <aside class="hidden lg:block">
+    <div class="sticky top-24">
+      <h4 class="text-caption font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+        On This Page
+      </h4>
+      <nav>
+        <ul class="space-y-2" id="table-of-contents">
+          {toc.map((heading) => (
+            <li class={heading.depth === 3 ? 'ml-3' : ''}>
+              <a
+                href={`#${heading.slug}`}
+                class="toc-link text-body-s text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors block py-0.5"
+                data-heading-slug={heading.slug}
+              >
+                {heading.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+  </aside>
+)}
+
+<script>
+  // 滚动高亮当前章节
+  function highlightCurrentSection() {
+    const tocLinks = document.querySelectorAll('.toc-link');
+    const headings = document.querySelectorAll('h2[id], h3[id]');
+    
+    let currentId = '';
+    
+    headings.forEach(heading => {
+      const rect = heading.getBoundingClientRect();
+      if (rect.top <= 100) {
+        currentId = heading.id;
+      }
+    });
+    
+    tocLinks.forEach(link => {
+      const slug = link.getAttribute('data-heading-slug');
+      if (slug === currentId) {
+        link.classList.add('text-primary-600', 'dark:text-primary-400', 'font-medium');
+      } else {
+        link.classList.remove('text-primary-600', 'dark:text-primary-400', 'font-medium');
+      }
+    });
+  }
+  
+  // 初始化
+  highlightCurrentSection();
+  
+  // 滚动监听
+  window.addEventListener('scroll', highlightCurrentSection, { passive: true });
+  
+  // 页面切换后重新初始化
+  document.addEventListener('astro:page-load', highlightCurrentSection);
+</script>

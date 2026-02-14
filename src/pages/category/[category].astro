@@ -1,0 +1,121 @@
+---
+// src/pages/category/[category].astro
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Breadcrumb from '@components/common/Breadcrumb.astro';
+import ArticleCard from '@components/article/ArticleCard.astro';
+import Newsletter from '@components/common/Newsletter.astro';
+import { generateBreadcrumbSchema } from '@lib/seo';
+import { db } from '@lib/db';
+import { articles } from '@lib/db/schema';
+import { eq, desc, and } from 'drizzle-orm';
+
+export const prerender = false;
+
+const categoryData: Record<string, { name: string; description: string }> = {
+  guides: { name: 'Guides', description: 'Step-by-step tutorials and comprehensive guides to help you master new skills.' },
+  reviews: { name: 'Reviews', description: 'In-depth, honest reviews of products and services to help you make informed decisions.' },
+  tips: { name: 'Tips', description: 'Quick tips and practical advice to improve your productivity and workflow.' },
+  resources: { name: 'Resources', description: 'Curated collections of tools, templates, and helpful resources.' },
+};
+
+export async function getStaticPaths() {
+  return Object.keys(categoryData).map((slug) => ({
+    params: { category: slug },
+    props: { slug },
+  }));
+}
+
+// 在 SSR 模式下使用 Astro.params，在 SSG 模式下使用 Astro.props
+const slug = Astro.params.category || Astro.props.slug;
+const data = categoryData[slug] || { name: slug, description: '' };
+const title = data.name;
+const description = data.description;
+
+// 面包屑
+const breadcrumbs = [
+  { label: 'Home', href: '/' },
+  { label: data.name },
+];
+
+// 从数据库获取该分类的文章
+let categoryArticles: any[] = [];
+try {
+  const result = await db
+    .select()
+    .from(articles)
+    .where(and(
+      eq(articles.category, slug),
+      eq(articles.status, 'published')
+    ))
+    .orderBy(desc(articles.publishedAt));
+  
+  categoryArticles = result.map(a => ({
+    title: a.title,
+    slug: a.slug,
+    description: a.description,
+    readingTime: a.readingTime || 5,
+    publishedAt: a.publishedAt || '',
+    category: a.category,
+  }));
+} catch (error) {
+  console.error('Error fetching category articles:', error);
+}
+---
+
+<BaseLayout title={title} description={description}>
+  <main class="py-8 md:py-12">
+    <div class="container-content">
+      <!-- Breadcrumb -->
+      <Breadcrumb items={breadcrumbs} />
+      
+      <!-- Category Header -->
+      <header class="mb-10">
+        <h1 class="text-h1 text-gray-900 dark:text-white mb-3">
+          {data.name}
+        </h1>
+        <p class="text-body-l text-gray-600 dark:text-gray-400 max-w-2xl">
+          {data.description}
+        </p>
+      </header>
+      
+      <!-- Articles Grid -->
+      {categoryArticles.length > 0 ? (
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {categoryArticles.map((article) => (
+            <ArticleCard {...article} />
+          ))}
+        </div>
+      ) : (
+        <div class="text-center py-16">
+          <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">No articles yet</h3>
+          <p class="text-body-s text-gray-500 dark:text-gray-400">
+            Check back soon for new content.
+          </p>
+        </div>
+      )}
+      
+      <!-- Article Count -->
+      {categoryArticles.length > 0 && (
+        <p class="text-center text-body-s text-gray-500 dark:text-gray-400 mt-8">
+          {categoryArticles.length} article{categoryArticles.length !== 1 ? 's' : ''} in {data.name}
+        </p>
+      )}
+    </div>
+  </main>
+  
+  <!-- Newsletter -->
+  <Newsletter variant="compact" />
+  
+  <!-- BreadcrumbList Schema -->
+  <script type="application/ld+json" set:html={JSON.stringify(
+    generateBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: data.name }
+    ])
+  )} />
+</BaseLayout>

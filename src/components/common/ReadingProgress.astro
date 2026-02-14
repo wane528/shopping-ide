@@ -1,0 +1,30 @@
+---
+// src/components/common/ReadingProgress.astro
+---
+
+<div class="reading-progress" id="reading-progress">
+  <div class="reading-progress-bar" id="reading-progress-bar" style="width: 0%"></div>
+</div>
+
+<script>
+  const progressBar = document.getElementById('reading-progress-bar');
+  
+  function updateProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = (scrollTop / docHeight) * 100;
+    
+    if (progressBar) {
+      progressBar.style.width = `${Math.min(progress, 100)}%`;
+    }
+  }
+  
+  // 初始化
+  updateProgress();
+  
+  // 滚动时更新
+  window.addEventListener('scroll', updateProgress, { passive: true });
+  
+  // 页面加载完成后再次更新
+  document.addEventListener('astro:page-load', updateProgress);
+</script>

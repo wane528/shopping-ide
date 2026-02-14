@@ -1,0 +1,145 @@
+---
+// src/pages/admin/index.astro
+// 后台仪表盘
+
+export const prerender = false;
+
+import AdminLayout from '@layouts/AdminLayout.astro';
+
+const title = '仪表盘';
+
+// 获取统计数据（示例）
+const stats = [
+  { label: '文章总数', value: '3', icon: 'article', color: 'blue' },
+  { label: '已发布', value: '3', icon: 'check', color: 'green' },
+  { label: '草稿', value: '0', icon: 'draft', color: 'yellow' },
+  { label: '分类', value: '4', icon: 'category', color: 'purple' },
+];
+
+// 最近文章（示例）
+const recentArticles = [
+  { id: 1, title: "The Complete Beginner's Guide to Getting Started", status: 'published', category: 'guides', date: '2026-02-14' },
+  { id: 2, title: 'Top 10 Productivity Tools for 2026', status: 'published', category: 'reviews', date: '2026-02-14' },
+  { id: 3, title: '5 Quick Tips to Boost Your Efficiency', status: 'published', category: 'tips', date: '2026-02-14' },
+];
+---
+
+<AdminLayout title={title}>
+  <!-- 统计卡片 -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    {stats.map((stat) => (
+      <div class="admin-card">
+        <div class="flex items-center gap-4">
+          <div class={`w-12 h-12 rounded-lg flex items-center justify-center ${
+            stat.color === 'blue' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' :
+            stat.color === 'green' ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' :
+            stat.color === 'yellow' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400' :
+            'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+          }`}>
+            {stat.icon === 'article' && (
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            )}
+            {stat.icon === 'check' && (
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            )}
+            {stat.icon === 'draft' && (
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+            )}
+            {stat.icon === 'category' && (
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+              </svg>
+            )}
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{stat.label}</p>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+  
+  <!-- 快捷操作 -->
+  <div class="admin-card mb-8">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">快捷操作</h2>
+    <div class="flex flex-wrap gap-3">
+      <a href="/admin/articles/new" class="admin-btn admin-btn-primary">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        新建文章
+      </a>
+      <a href="/admin/categories" class="admin-btn admin-btn-secondary">
+        管理分类
+      </a>
+      <a href="/admin/authors" class="admin-btn admin-btn-secondary">
+        管理作者
+      </a>
+      <a href="/" target="_blank" class="admin-btn admin-btn-secondary">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+        </svg>
+        查看网站
+      </a>
+    </div>
+  </div>
+  
+  <!-- 最近文章 -->
+  <div class="admin-card">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">最近文章</h2>
+      <a href="/admin/articles" class="text-sm text-primary-600 dark:text-primary-400 hover:underline">
+        查看全部 →
+      </a>
+    </div>
+    
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>标题</th>
+          <th>分类</th>
+          <th>状态</th>
+          <th>日期</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {recentArticles.map((article) => (
+          <tr>
+            <td class="font-medium">{article.title}</td>
+            <td>
+              <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 capitalize">
+                {article.category}
+              </span>
+            </td>
+            <td>
+              <span class={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                article.status === 'published' 
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                  : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+              }`}>
+                {article.status === 'published' ? '已发布' : '草稿'}
+              </span>
+            </td>
+            <td class="text-gray-500 dark:text-gray-400">{article.date}</td>
+            <td>
+              <a 
+                href={`/admin/articles/${article.id}`}
+                class="text-primary-600 dark:text-primary-400 hover:underline text-sm"
+              >
+                编辑
+              </a>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</AdminLayout>

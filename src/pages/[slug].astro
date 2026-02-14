@@ -1,0 +1,342 @@
+---
+// src/pages/[slug].astro
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Breadcrumb from '@components/common/Breadcrumb.astro';
+import TableOfContents from '@components/article/TableOfContents.astro';
+import AuthorCard from '@components/article/AuthorCard.astro';
+import RelatedArticles from '@components/article/RelatedArticles.astro';
+import Newsletter from '@components/common/Newsletter.astro';
+import { generateArticleSchema, generateBreadcrumbSchema, generateFAQSchema } from '@lib/seo';
+import { marked } from 'marked';
+import { db } from '@lib/db';
+import { articles, authors } from '@lib/db/schema';
+import { eq, desc } from 'drizzle-orm';
+
+export const prerender = false;
+
+// 配置 marked 选项
+marked.setOptions({
+  breaks: true,
+  gfm: true,
+});
+
+// 自定义渲染器 - 为标题添加 id
+const renderer = new marked.Renderer();
+renderer.heading = ({ depth, text }) => {
+  const slug = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  return `<h${depth} id="${slug}">${text}</h${depth}>`;
+};
+marked.use({ renderer });
+
+// 从数据库获取文章
+async function getArticle(slug: string) {
+  const result = await db.select().from(articles).where(eq(articles.slug, slug));
+  return result[0];
+}
+
+// 从数据库获取作者
+async function getAuthor(authorId: number | null) {
+  if (!authorId) return null;
+  const result = await db.select().from(authors).where(eq(authors.id, authorId));
+  return result[0];
+}
+
+// 获取相关文章
+async function getRelatedArticles(category: string, currentSlug: string) {
+  const result = await db
+    .select()
+    .from(articles)
+    .where(eq(articles.category, category))
+    .orderBy(desc(articles.publishedAt))
+    .limit(3);
+  return result.filter(a => a.slug !== currentSlug && a.status === 'published');
+}
+
+// 动态路由处理
+export async function getStaticPaths() {
+  // 获取所有已发布的文章
+  const allArticles = await db
+    .select()
+    .from(articles)
+    .where(eq(articles.status, 'published'));
+  
+  return allArticles.map((article) => ({
+    params: { slug: article.slug },
+    props: { article },
+  }));
+}
+
+const { article } = Astro.props;
+
+// 如果没有文章数据，尝试从数据库获取
+let currentArticle = article;
+if (!currentArticle) {
+  const slug = Astro.params.slug;
+  if (slug) {
+    currentArticle = await getArticle(slug);
+  }
+}
+
+// 如果文章不存在或未发布，返回 404
+if (!currentArticle || currentArticle.status !== 'published') {
+  return Astro.redirect('/404');
+}
+
+// 获取作者信息
+const author = await getAuthor(currentArticle.authorId);
+
+// 获取相关文章
+const relatedArticlesList = await getRelatedArticles(currentArticle.category, currentArticle.slug);
+
+// 渲染 Markdown 内容
+const contentHtml = await marked(currentArticle.content);
+
+const title = currentArticle.title;
+const description = currentArticle.description;
+
+// 目录生成 - 只提取 H2 和 H3
+const headingMatches = currentArticle.content.match(/^##[^#].*$|^###[^#].*$/gm) || [];
+const toc = headingMatches.map(h => {
+  const level = (h.match(/^#+/) || [''])[0].length;
+  const text = h.replace(/^#+\s/, '');
+  const slug = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  return { depth: level, text, slug };
+});
+
+// 面包屑
+const breadcrumbs = [
+  { label: 'Home', href: '/' },
+  { label: currentArticle.category, href: `/category/${currentArticle.category}` },
+  { label: currentArticle.title },
+];
+
+// 格式化相关文章
+const relatedArticles = relatedArticlesList.slice(0, 2).map(a => ({
+  title: a.title,
+  slug: a.slug,
+  category: a.category,
+  description: a.description,
+  readingTime: a.readingTime || 5,
+  publishedAt: a.publishedAt || '',
+}));
+---
+
+<BaseLayout title={title} description={description} type="article">
+  <article class="py-8 md:py-12">
+    <div class="container-content">
+      <!-- Breadcrumb -->
+      <Breadcrumb items={breadcrumbs} />
+      
+      <!-- Article Header -->
+      <header class="mb-10 pb-8 border-b border-gray-200 dark:border-gray-800">
+        <span class="badge badge-primary capitalize mb-4">{currentArticle.category}</span>
+        <h1 class="text-h1 text-gray-900 dark:text-white mb-4 text-balance">
+          {currentArticle.title}
+        </h1>
+        <p class="text-body-l text-gray-600 dark:text-gray-400 mb-6 max-w-3xl">
+          {currentArticle.description}
+        </p>
+        
+        <!-- Meta -->
+        <div class="flex flex-wrap items-center gap-4 text-body-s text-gray-500 dark:text-gray-400">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+              {author?.avatar ? (
+                <img src={author.avatar} alt={author.name} class="w-full h-full rounded-full object-cover" />
+              ) : (
+                <span class="text-primary-600 dark:text-primary-400 font-medium text-caption">
+                  {author?.name?.charAt(0) || 'G'}
+                </span>
+              )}
+            </div>
+            <span class="font-medium text-gray-700 dark:text-gray-300">{author?.name || 'GoodSetup Team'}</span>
+          </div>
+          <span class="text-gray-300 dark:text-gray-600">·</span>
+          <time datetime={currentArticle.publishedAt || ''}>
+            {currentArticle.publishedAt 
+              ? new Date(currentArticle.publishedAt).toLocaleDateString('en-US', { 
+                  month: 'long', 
+                  day: 'numeric', 
+                  year: 'numeric' 
+                })
+              : 'Draft'
+            }
+          </time>
+          <span class="text-gray-300 dark:text-gray-600">·</span>
+          <span>{currentArticle.readingTime || 5} min read</span>
+        </div>
+      </header>
+      
+      <!-- Content Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10">
+        <!-- Main Content -->
+        <div class="min-w-0">
+          <div class="prose dark:prose-invert max-w-none" set:html={contentHtml} />
+          
+          <!-- Author Card -->
+          <div class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800">
+            <AuthorCard 
+              name={author?.name || 'GoodSetup Team'} 
+              bio={author?.bio || 'We create helpful guides and resources for better setups.'}
+              avatar={author?.avatar}
+            />
+          </div>
+          
+          <!-- Related Articles -->
+          {relatedArticles.length > 0 && (
+            <RelatedArticles articles={relatedArticles} />
+          )}
+        </div>
+        
+        <!-- Sidebar - TOC -->
+        <TableOfContents headings={toc} />
+      </div>
+    </div>
+  </article>
+  
+  <!-- Newsletter -->
+  <Newsletter variant="compact" />
+  
+  <!-- Article Schema -->
+  <script type="application/ld+json" set:html={JSON.stringify(
+    generateArticleSchema({
+      title: currentArticle.title,
+      description: currentArticle.description,
+      slug: currentArticle.slug,
+      publishedAt: new Date(currentArticle.publishedAt || Date.now()),
+      updatedAt: currentArticle.updatedAt ? new Date(currentArticle.updatedAt) : undefined,
+      authorName: author?.name,
+      image: currentArticle.heroImage || undefined,
+    })
+  )} />
+  
+  <!-- BreadcrumbList Schema -->
+  <script type="application/ld+json" set:html={JSON.stringify(
+    generateBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: currentArticle.category, url: `/category/${currentArticle.category}` },
+      { name: currentArticle.title }
+    ])
+  )} />
+  
+  <!-- FAQ Schema -->
+  {currentArticle.faqJson && (
+    <script type="application/ld+json" set:html={JSON.stringify(
+      generateFAQSchema(JSON.parse(currentArticle.faqJson))
+    )} />
+  )}
+</BaseLayout>
+
+<style>
+  .prose :is(h2, h3, h4) {
+    scroll-margin-top: 6rem;
+  }
+  
+  .prose h2 {
+    id: attr(id);
+  }
+  
+  .prose {
+    @apply text-gray-700 dark:text-gray-300;
+  }
+  
+  .prose h2 {
+    @apply text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4;
+  }
+  
+  .prose h3 {
+    @apply text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3;
+  }
+  
+  .prose p {
+    @apply mb-4 leading-relaxed;
+  }
+  
+  .prose ul, .prose ol {
+    @apply mb-4 pl-6;
+  }
+  
+  .prose li {
+    @apply mb-2;
+  }
+  
+  .prose blockquote {
+    @apply border-l-4 border-primary-500 pl-4 italic text-gray-600 dark:text-gray-400 my-4;
+  }
+  
+  .prose strong {
+    @apply font-semibold text-gray-900 dark:text-white;
+  }
+  
+  .prose a {
+    @apply text-primary-600 dark:text-primary-400 hover:underline;
+  }
+  
+  .prose code {
+    @apply bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm;
+  }
+  
+  .prose pre {
+    @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4;
+  }
+  
+  .prose pre code {
+    @apply bg-transparent p-0;
+  }
+  
+  /* 表格样式 */
+  .prose table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+    display: block;
+    overflow-x: auto;
+  }
+  
+  .prose thead {
+    background-color: #f3f4f6;
+  }
+  
+  .dark .prose thead {
+    background-color: #374151;
+  }
+  
+  .prose th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #111827;
+    border-bottom: 2px solid #d1d5db;
+  }
+  
+  .dark .prose th {
+    color: #f9fafb;
+    border-bottom-color: #4b5563;
+  }
+  
+  .prose td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .dark .prose td {
+    border-bottom-color: #374151;
+  }
+  
+  .prose tbody tr:nth-child(even) {
+    background-color: #f9fafb;
+  }
+  
+  .dark .prose tbody tr:nth-child(even) {
+    background-color: #1f2937;
+  }
+  
+  .prose tbody tr:hover {
+    background-color: #f3f4f6;
+  }
+  
+  .dark .prose tbody tr:hover {
+    background-color: #374151;
+  }
+</style>

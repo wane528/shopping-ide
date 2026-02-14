@@ -1,0 +1,171 @@
+---
+// src/pages/about.astro
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Breadcrumb from '@components/common/Breadcrumb.astro';
+import Newsletter from '@components/common/Newsletter.astro';
+import { generateOrganizationSchema } from '@lib/seo';
+
+const title = 'About';
+const description = 'Learn more about GoodSetup and our mission to help you with better setups.';
+
+const values = [
+  {
+    title: 'Quality First',
+    description: 'Every piece of content is thoroughly researched, fact-checked, and regularly updated.',
+    icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>`,
+  },
+  {
+    title: 'Reader Focused',
+    description: 'We write for you, not for algorithms. Clear, practical, and actionable content.',
+    icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+    </svg>`,
+  },
+  {
+    title: 'Honest Reviews',
+    description: 'Unbiased opinions based on real experience. We disclose any affiliate relationships.',
+    icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+    </svg>`,
+  },
+  {
+    title: 'Constant Improvement',
+    description: 'We continuously update our content to reflect the latest information and best practices.',
+    icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+    </svg>`,
+  },
+];
+
+const breadcrumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'About' },
+];
+---
+
+<BaseLayout title={title} description={description}>
+  <main class="py-8 md:py-12">
+    <div class="container-content">
+      <!-- Breadcrumb -->
+      <Breadcrumb items={breadcrumbs} />
+      
+      <!-- Header -->
+      <header class="mb-12">
+        <h1 class="text-h1 text-gray-900 dark:text-white mb-4">
+          About GoodSetup
+        </h1>
+        <p class="text-body-l text-gray-600 dark:text-gray-400 max-w-3xl">
+          Your guide to better setups. We create quality content to help you make informed decisions 
+          about the tools, products, and workflows that matter to you.
+        </p>
+      </header>
+      
+      <!-- Mission -->
+      <section class="mb-16">
+        <div class="card bg-gray-50/50 dark:bg-gray-800/50 border-0 p-8 md:p-10">
+          <div class="max-w-3xl">
+            <h2 class="text-h2 text-gray-900 dark:text-white mb-4">
+              Our Mission
+            </h2>
+            <p class="text-body-l text-gray-600 dark:text-gray-400 mb-6">
+              We believe everyone deserves access to clear, accurate, and helpful information. 
+              Our mission is to cut through the noise and provide genuinely useful content that 
+              helps you make better decisions.
+            </p>
+            <p class="text-body-s text-gray-500 dark:text-gray-400">
+              Unlike many affiliate sites, we prioritize quality over quantity. Every guide is 
+              written with care, every review is based on real experience, and every recommendation 
+              is made with your best interests in mind.
+            </p>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Values -->
+      <section class="mb-16">
+        <h2 class="text-h2 text-gray-900 dark:text-white mb-8">
+          What We Stand For
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {values.map((value) => (
+            <div class="card group">
+              <div class="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 mb-4">
+                <Fragment set:html={value.icon} />
+              </div>
+              <h3 class="font-semibold text-gray-900 dark:text-white mb-2">
+                {value.title}
+              </h3>
+              <p class="text-body-s text-gray-500 dark:text-gray-400">
+                {value.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+      
+      <!-- Content Types -->
+      <section class="mb-16">
+        <h2 class="text-h2 text-gray-900 dark:text-white mb-8">
+          What We Offer
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="card text-center">
+            <div class="text-h2 text-primary-500 font-bold mb-2">Guides</div>
+            <p class="text-body-s text-gray-500 dark:text-gray-400">
+              Comprehensive tutorials that walk you through complex topics
+            </p>
+          </div>
+          <div class="card text-center">
+            <div class="text-h2 text-primary-500 font-bold mb-2">Reviews</div>
+            <p class="text-body-s text-gray-500 dark:text-gray-400">
+              Honest, unbiased reviews based on real experience
+            </p>
+          </div>
+          <div class="card text-center">
+            <div class="text-h2 text-primary-500 font-bold mb-2">Tips</div>
+            <p class="text-body-s text-gray-500 dark:text-gray-400">
+              Quick, actionable advice for immediate improvement
+            </p>
+          </div>
+          <div class="card text-center">
+            <div class="text-h2 text-primary-500 font-bold mb-2">Resources</div>
+            <p class="text-body-s text-gray-500 dark:text-gray-400">
+              Curated collections of tools and helpful materials
+            </p>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Contact -->
+      <section class="mb-16">
+        <h2 class="text-h2 text-gray-900 dark:text-white mb-6">
+          Get in Touch
+        </h2>
+        <div class="card">
+          <p class="text-body-s text-gray-600 dark:text-gray-400 mb-4">
+            Have questions, suggestions, or just want to say hi? We'd love to hear from you.
+          </p>
+          <div class="flex flex-wrap gap-6 text-body-s">
+            <a href="mailto:goodsetup@pronto.me" class="flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:underline">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+              goodsetup@pronto.me
+            </a>
+            <a href="https://twitter.com/goodsetup" target="_blank" rel="noopener" class="flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:underline">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+              @goodsetup
+            </a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  
+  <!-- Organization Schema -->
+  <script type="application/ld+json" set:html={JSON.stringify(generateOrganizationSchema())} />
+</BaseLayout>

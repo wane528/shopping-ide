@@ -1,0 +1,54 @@
+---
+// src/components/common/Breadcrumb.astro
+
+// 获取站点 URL
+const siteUrl = import.meta.env.SITE_URL || 'http://localhost:4321';
+
+interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  items: BreadcrumbItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<nav class="mb-6" aria-label="Breadcrumb">
+  <ol class="flex items-center gap-2 text-body-s flex-wrap">
+    {items.map((item, index) => (
+      <li class="flex items-center gap-2">
+        {index > 0 && (
+          <span class="text-gray-300 dark:text-gray-600">/</span>
+        )}
+        {item.href ? (
+          <a 
+            href={item.href}
+            class="text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+          >
+            {item.label}
+          </a>
+        ) : (
+          <span class="text-gray-700 dark:text-gray-300 font-medium truncate max-w-[200px]">
+            {item.label}
+          </span>
+        )}
+      </li>
+    ))}
+  </ol>
+</nav>
+
+{items.length > 1 && (
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": items.map((item, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "name": item.label,
+      ...(item.href && { "item": `${siteUrl}${item.href}` })
+    }))
+  })} />
+)}

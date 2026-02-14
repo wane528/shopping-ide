@@ -1,0 +1,169 @@
+---
+// src/components/common/Skeleton.astro
+// 骨架屏组件，支持多种形状
+
+interface Props {
+  variant?: 'card' | 'article' | 'list' | 'text' | 'avatar' | 'image';
+  count?: number;
+  class?: string;
+}
+
+const { variant = 'text', count = 1, class: className = '' } = Astro.props;
+---
+
+<div class:list={['skeleton-wrapper', className]}>
+  {Array.from({ length: count }).map(() => (
+    <div class="skeleton-item" data-variant={variant}>
+      {variant === 'card' && (
+        <div class="skeleton-card">
+          <div class="skeleton-image"></div>
+          <div class="skeleton-content">
+            <div class="skeleton-title"></div>
+            <div class="skeleton-text"></div>
+            <div class="skeleton-text skeleton-text--short"></div>
+          </div>
+        </div>
+      )}
+      
+      {variant === 'article' && (
+        <div class="skeleton-article">
+          <div class="skeleton-title skeleton-title--large"></div>
+          <div class="skeleton-meta">
+            <div class="skeleton-avatar"></div>
+            <div class="skeleton-text skeleton-text--small"></div>
+          </div>
+          <div class="skeleton-body">
+            <div class="skeleton-text"></div>
+            <div class="skeleton-text"></div>
+            <div class="skeleton-text skeleton-text--medium"></div>
+          </div>
+        </div>
+      )}
+      
+      {variant === 'list' && (
+        <div class="skeleton-list-item">
+          <div class="skeleton-avatar skeleton-avatar--small"></div>
+          <div class="skeleton-list-content">
+            <div class="skeleton-text skeleton-text--medium"></div>
+            <div class="skeleton-text skeleton-text--short"></div>
+          </div>
+        </div>
+      )}
+      
+      {variant === 'text' && (
+        <div class="skeleton-text"></div>
+      )}
+      
+      {variant === 'avatar' && (
+        <div class="skeleton-avatar"></div>
+      )}
+      
+      {variant === 'image' && (
+        <div class="skeleton-image"></div>
+      )}
+    </div>
+  ))}
+</div>
+
+<style>
+  /* Shimmer 动画 */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  
+  .skeleton-wrapper {
+    @apply space-y-4;
+  }
+  
+  /* 基础骨架样式 */
+  .skeleton-text,
+  .skeleton-title,
+  .skeleton-avatar,
+  .skeleton-image {
+    @apply rounded bg-gray-200 dark:bg-gray-700;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  
+  /* 文本 */
+  .skeleton-text {
+    @apply h-4 w-full;
+  }
+  
+  .skeleton-text--short {
+    @apply w-2/3;
+  }
+  
+  .skeleton-text--medium {
+    @apply w-4/5;
+  }
+  
+  .skeleton-text--small {
+    @apply h-3 w-24;
+  }
+  
+  /* 标题 */
+  .skeleton-title {
+    @apply h-6 w-3/4 mb-4;
+  }
+  
+  .skeleton-title--large {
+    @apply h-8 w-full;
+  }
+  
+  /* 头像 */
+  .skeleton-avatar {
+    @apply w-10 h-10 rounded-full flex-shrink-0;
+  }
+  
+  .skeleton-avatar--small {
+    @apply w-8 h-8;
+  }
+  
+  /* 图片 */
+  .skeleton-image {
+    @apply w-full h-48 rounded-lg;
+  }
+  
+  /* 卡片 */
+  .skeleton-card {
+    @apply bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden;
+  }
+  
+  .skeleton-content {
+    @apply p-4 space-y-3;
+  }
+  
+  /* 文章 */
+  .skeleton-article {
+    @apply space-y-4;
+  }
+  
+  .skeleton-meta {
+    @apply flex items-center gap-3;
+  }
+  
+  .skeleton-body {
+    @apply space-y-2 pt-4;
+  }
+  
+  /* 列表项 */
+  .skeleton-list-item {
+    @apply flex items-center gap-3 py-3;
+  }
+  
+  .skeleton-list-content {
+    @apply flex-1 space-y-2;
+  }
+</style>

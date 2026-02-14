@@ -1,0 +1,367 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════════════
+   GoodSetup Design System
+   Style: Clean SaaS + 轻电商感 + 内容可信度优先
+   ═══════════════════════════════════════════════════════════════ */
+
+@layer base {
+  /* ─────────────────────────────────────────────
+     Base Styles
+     ───────────────────────────────────────────── */
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-900;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+  }
+  
+  /* Dark mode */
+  html.dark body {
+    @apply bg-gray-950 text-gray-100;
+  }
+  
+  /* ─────────────────────────────────────────────
+     Typography Scale
+     ───────────────────────────────────────────── */
+  h1 { @apply text-h1 font-bold tracking-tight text-gray-900; }
+  h2 { @apply text-h2 font-semibold tracking-tight text-gray-900; }
+  h3 { @apply text-h3 font-semibold text-gray-900; }
+  h4 { @apply text-h4 font-medium text-gray-900; }
+  
+  html.dark h1 { @apply text-white; }
+  html.dark h2 { @apply text-white; }
+  html.dark h3 { @apply text-white; }
+  html.dark h4 { @apply text-white; }
+  
+  /* ─────────────────────────────────────────────
+     Links
+     ───────────────────────────────────────────── */
+  a {
+    @apply text-primary-600 transition-colors duration-fast;
+  }
+  
+  a:hover {
+    @apply text-primary-700;
+  }
+  
+  html.dark a {
+    @apply text-primary-400;
+  }
+  
+  html.dark a:hover {
+    @apply text-primary-300;
+  }
+  
+  /* ─────────────────────────────────────────────
+     Focus States
+     ───────────────────────────────────────────── */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary-500;
+  }
+  
+  /* ─────────────────────────────────────────────
+     Selection
+     ───────────────────────────────────────────── */
+  ::selection {
+    @apply bg-primary-100 text-primary-900;
+  }
+  
+  html.dark ::selection {
+    @apply bg-primary-900/50 text-primary-100;
+  }
+}
+
+@layer components {
+  /* ─────────────────────────────────────────────
+     Card System
+     ───────────────────────────────────────────── */
+  .card {
+    @apply bg-white border border-gray-200 rounded-lg p-6;
+    @apply transition-all duration-normal;
+  }
+  
+  .card-hover {
+    @apply hover:shadow-card-hover hover:border-primary-200;
+  }
+  
+  html.dark .card {
+    @apply bg-gray-900 border-gray-800;
+  }
+  
+  html.dark .card-hover {
+    @apply hover:border-primary-800/50;
+  }
+  
+  /* ─────────────────────────────────────────────
+     Button System
+     ───────────────────────────────────────────── */
+  .btn {
+    @apply inline-flex items-center justify-center;
+    @apply font-medium text-body-s;
+    @apply transition-all duration-fast;
+    @apply rounded-md;
+  }
+  
+  .btn-primary {
+    @apply bg-primary-500 text-white;
+    @apply px-5 py-3;
+    @apply hover:bg-primary-600 active:bg-primary-700;
+    @apply shadow-sm hover:shadow-md;
+  }
+  
+  .btn-secondary {
+    @apply bg-white text-gray-700;
+    @apply border border-gray-300;
+    @apply px-5 py-3;
+    @apply hover:bg-gray-100;
+  }
+  
+  .btn-ghost {
+    @apply text-gray-600;
+    @apply px-4 py-2;
+    @apply hover:bg-gray-100 hover:text-gray-900;
+  }
+  
+  html.dark .btn-secondary {
+    @apply bg-gray-800 text-gray-200 border-gray-700;
+    @apply hover:bg-gray-700;
+  }
+  
+  html.dark .btn-ghost {
+    @apply text-gray-400 hover:text-gray-100 hover:bg-gray-800;
+  }
+  
+  /* ─────────────────────────────────────────────
+     Badge System
+     ───────────────────────────────────────────── */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5;
+    @apply rounded-sm text-caption font-medium;
+  }
+  
+  .badge-primary {
+    @apply bg-primary-100 text-primary-700;
+  }
+  
+  .badge-gray {
+    @apply bg-gray-100 text-gray-600;
+  }
+  
+  html.dark .badge-primary {
+    @apply bg-primary-900/50 text-primary-300;
+  }
+  
+  html.dark .badge-gray {
+    @apply bg-gray-800 text-gray-400;
+  }
+  
+  /* ─────────────────────────────────────────────
+     Article Content (Prose)
+     ───────────────────────────────────────────── */
+  .prose {
+    @apply text-gray-700 leading-relaxed;
+    @apply max-w-content;
+  }
+  
+  .prose h2 {
+    @apply text-h2 font-semibold text-gray-900 mt-12 mb-4;
+    @apply scroll-mt-24;
+  }
+  
+  .prose h3 {
+    @apply text-h3 font-semibold text-gray-900 mt-8 mb-3;
+    @apply scroll-mt-24;
+  }
+  
+  .prose p {
+    @apply mb-4 text-body-l;
+  }
+  
+  .prose ul,
+  .prose ol {
+    @apply mb-4 pl-6 space-y-2;
+  }
+  
+  .prose li {
+    @apply text-body-l;
+  }
+  
+  .prose li::marker {
+    @apply text-primary-500;
+  }
+  
+  .prose blockquote {
+    @apply border-l-4 border-primary-400 pl-4 py-1 my-6;
+    @apply text-gray-600 italic;
+    @apply bg-gray-100/50 rounded-r-md pr-4;
+  }
+  
+  .prose code {
+    @apply bg-gray-100 px-1.5 py-0.5 rounded-sm text-body-s font-mono;
+    @apply text-gray-800;
+  }
+  
+  .prose pre {
+    @apply bg-gray-900 rounded-lg p-4 overflow-x-auto my-6;
+  }
+  
+  .prose pre code {
+    @apply bg-transparent p-0 text-gray-100;
+  }
+  
+  .prose img {
+    @apply rounded-lg my-8;
+  }
+  
+  .prose a {
+    @apply text-primary-600 underline underline-offset-2;
+    @apply hover:text-primary-700;
+  }
+  
+  .prose strong {
+    @apply font-semibold text-gray-900;
+  }
+  
+  /* Dark mode prose */
+  html.dark .prose {
+    @apply text-gray-300;
+  }
+  
+  html.dark .prose h2,
+  html.dark .prose h3 {
+    @apply text-white;
+  }
+  
+  html.dark .prose blockquote {
+    @apply text-gray-400 bg-gray-800/50;
+  }
+  
+  html.dark .prose code {
+    @apply bg-gray-800 text-gray-200;
+  }
+  
+  html.dark .prose strong {
+    @apply text-white;
+  }
+  
+  /* ─────────────────────────────────────────────
+     Section Spacing
+     ───────────────────────────────────────────── */
+  .section {
+    @apply py-16 md:py-20;
+  }
+  
+  .section-sm {
+    @apply py-12 md:py-16;
+  }
+  
+  /* ─────────────────────────────────────────────
+     Container
+     ───────────────────────────────────────────── */
+  .container-content {
+    @apply max-w-wide mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .container-narrow {
+    @apply max-w-content mx-auto px-4 sm:px-6;
+  }
+  
+  /* ─────────────────────────────────────────────
+     Reading Progress Bar
+     ───────────────────────────────────────────── */
+  .reading-progress {
+    @apply fixed top-0 left-0 right-0 h-1 z-50;
+    @apply bg-transparent;
+  }
+  
+  .reading-progress-bar {
+    @apply h-full bg-primary-500 transition-all duration-fast;
+  }
+  
+  /* ─────────────────────────────────────────────
+     Skeleton Loading
+     ───────────────────────────────────────────── */
+  .skeleton {
+    @apply bg-gray-100 animate-pulse rounded;
+  }
+  
+  html.dark .skeleton {
+    @apply bg-gray-800;
+  }
+  
+  /* ─────────────────────────────────────────────
+     Trust Badge (电商预留)
+     ───────────────────────────────────────────── */
+  .trust-badge {
+    @apply inline-flex items-center gap-1.5 text-caption text-gray-500;
+  }
+  
+  .trust-badge svg {
+    @apply w-4 h-4 text-gray-400;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Utility Classes
+   ═══════════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Text balance for headings */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Gradient text */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary-600 to-primary-400;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Dark Mode Transition
+   ═══════════════════════════════════════════════════════════════ */
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* Smooth theme transition */
+html {
+  transition: background-color 0.2s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Reduced Motion
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
