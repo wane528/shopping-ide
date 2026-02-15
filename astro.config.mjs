@@ -16,6 +16,9 @@ export default defineConfig({
     functionPerRoute: false,
     runtime: 'nodejs20.x',
   }),
+  security: {
+    checkOrigin: false, // 允许跨域表单提交（用于 admin 后台）
+  },
   integrations: [
     tailwind(),
     // 仅在生产环境启用 sitemap

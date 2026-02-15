@@ -29,40 +29,13 @@ renderer.heading = ({ depth, text }) => {
 marked.use({ renderer });
 
 // 从数据库获取文章
-async function getArticle(slug: string) {
-  const result = await db.select().from(articles).where(eq(articles.slug, slug));
-  return result[0];
+const slug = Astro.params.slug;
+if (!slug) {
+  return Astro.redirect('/404');
 }
 
-// 从数据库获取作者
-async function getAuthor(authorId: number | null) {
-  if (!authorId) return null;
-  const result = await db.select().from(authors).where(eq(authors.id, authorId));
-  return result[0];
-}
-
-// 获取相关文章
-async function getRelatedArticles(category: string, currentSlug: string) {
-  const result = await db
-    .select()
-    .from(articles)
-    .where(eq(articles.category, category))
-    .orderBy(desc(articles.publishedAt))
-    .limit(3);
-  return result.filter(a => a.slug !== currentSlug && a.status === 'published');
-}
-
-// SSR 模式：从请求参数获取 slug
-const { article } = Astro.props;
-
-// 如果没有文章数据，尝试从数据库获取
-let currentArticle = article;
-if (!currentArticle) {
-  const slug = Astro.params.slug;
-  if (slug) {
-    currentArticle = await getArticle(slug);
-  }
-}
+const result = await db.select().from(articles).where(eq(articles.slug, slug));
+const currentArticle = result[0];
 
 // 如果文章不存在或未发布，返回 404
 if (!currentArticle || currentArticle.status !== 'published') {
@@ -70,10 +43,19 @@ if (!currentArticle || currentArticle.status !== 'published') {
 }
 
 // 获取作者信息
-const author = await getAuthor(currentArticle.authorId);
+const authorResult = currentArticle.authorId 
+  ? await db.select().from(authors).where(eq(authors.id, currentArticle.authorId))
+  : [];
+const author = authorResult[0] || null;
 
 // 获取相关文章
-const relatedArticlesList = await getRelatedArticles(currentArticle.category, currentArticle.slug);
+const relatedResult = await db
+  .select()
+  .from(articles)
+  .where(eq(articles.category, currentArticle.category))
+  .orderBy(desc(articles.publishedAt))
+  .limit(3);
+const relatedArticlesList = relatedResult.filter(a => a.slug !== currentArticle.slug && a.status === 'published');
 
 // 渲染 Markdown 内容
 const contentHtml = await marked(currentArticle.content);
