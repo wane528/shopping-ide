@@ -36,9 +36,11 @@ if (!connectionString) {
 const pool = createPool({ connectionString });
 
 // 读取文章数据
-const articles = JSON.parse(
-  fs.readFileSync(path.join(__dirname, 'articles.json'), 'utf-8')
+const articlesData = JSON.parse(
+  fs.readFileSync(path.join(__dirname, 'last-5.json'), 'utf-8')
 );
+
+const articles = articlesData;
 
 console.log(`准备导入 ${articles.length} 篇文章...\n`);
 

@@ -1,0 +1,77 @@
+[
+  {
+    "title": "Best Kits for Long Cracks (2026)",
+    "slug": "best-kits-long-cracks",
+    "description": "Best kits for long cracks",
+    "content": "# Best Kits for Long Cracks\n\nSpecial kits for 6-12 inch cracks.\n\n## Top 3\n\n1. Blue Star - .99\n2. Permatex Pro - .99\n3. 3M - .99\n\n## Success: 40-60%",
+    "category": "reviews",
+    "status": "scheduled",
+    "metaTitle": "Best Kits Long Cracks",
+    "metaDescription": "Best kits for long cracks",
+    "authorName": "GoodSetup Team",
+    "tags": [
+      "long cracks"
+    ],
+    "scheduledAt": "2026-02-27T10:00:00.000Z"
+  },
+  {
+    "title": "DIY vs Professional (2026)",
+    "slug": "diy-vs-pro",
+    "description": "Compare DIY and pro",
+    "content": "# DIY vs Pro\n\nDIY: -15\nPro: -150\nSavings: -140",
+    "category": "guides",
+    "status": "scheduled",
+    "metaTitle": "DIY vs Pro",
+    "metaDescription": "Compare DIY and pro",
+    "authorName": "GoodSetup Team",
+    "tags": [
+      "comparison"
+    ],
+    "scheduledAt": "2026-03-01T10:00:00.000Z"
+  },
+  {
+    "title": "Where to Buy Kits (2026)",
+    "slug": "where-to-buy",
+    "description": "Where to buy",
+    "content": "# Where to Buy\n\nAmazon, Walmart, AutoZone",
+    "category": "guides",
+    "status": "scheduled",
+    "metaTitle": "Where to Buy",
+    "metaDescription": "Where to buy kits",
+    "authorName": "GoodSetup Team",
+    "tags": [
+      "buying"
+    ],
+    "scheduledAt": "2026-03-03T10:00:00.000Z"
+  },
+  {
+    "title": "Repair FAQs (2026)",
+    "slug": "repair-faqs",
+    "description": "Common questions",
+    "content": "# FAQs\n\n1. Do they work? Yes\n2. How long? Lifetime\n3. Cost? -15",
+    "category": "guides",
+    "status": "scheduled",
+    "metaTitle": "Repair FAQs",
+    "metaDescription": "Common questions",
+    "authorName": "GoodSetup Team",
+    "tags": [
+      "FAQ"
+    ],
+    "scheduledAt": "2026-03-05T10:00:00.000Z"
+  },
+  {
+    "title": "Rain-X Instructions (2026)",
+    "slug": "rainx-guide",
+    "description": "Rain-X guide",
+    "content": "# Rain-X Guide\n\n1. Clean\n2. Apply\n3. Cure 30 min",
+    "category": "guides",
+    "status": "scheduled",
+    "metaTitle": "Rain-X Guide",
+    "metaDescription": "Rain-X instructions",
+    "authorName": "GoodSetup Team",
+    "tags": [
+      "rain-x"
+    ],
+    "scheduledAt": "2026-03-07T10:00:00.000Z"
+  }
+]
