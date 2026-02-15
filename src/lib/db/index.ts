@@ -1,14 +1,10 @@
 // src/lib/db/index.ts
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import Database from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/vercel-postgres';
+import { sql } from '@vercel/postgres';
 import * as schema from './schema';
-import path from 'path';
 
-// 本地 SQLite 数据库 - 使用绝对路径避免运行时路径问题
-const dbPath = path.resolve(process.cwd(), 'data/local.db');
-const sqlite = new Database(dbPath);
-
-export const db = drizzle(sqlite, { schema });
+// 使用 Vercel Postgres
+export const db = drizzle(sql, { schema });
 
 // 辅助函数：获取所有已发布文章
 export async function getPublishedArticles() {
