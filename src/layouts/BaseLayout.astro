@@ -27,8 +27,8 @@ const {
 const siteName = 'GoodSetup';
 // 使用环境变量配置域名，开发环境默认使用 localhost
 const siteUrl = import.meta.env.SITE_URL || 'http://localhost:4321';
-// Google Analytics ID（仅在配置时启用）
-const gaMeasurementId = import.meta.env.GA_MEASUREMENT_ID;
+// Google Analytics ID
+const gaMeasurementId = 'G-4TB5GYYH87';
 const fullTitle = title === siteName ? title : `${title} | ${siteName}`;
 const fullImageUrl = image.startsWith('http') ? image : `${siteUrl}${image}`;
 const canonicalUrl = canonical || `${siteUrl}${Astro.url.pathname}`;
