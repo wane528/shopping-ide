@@ -1,6 +1,5 @@
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
-import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
 
 // 从环境变量获取站点 URL
@@ -9,8 +8,6 @@ const siteUrl = process.env.SITE_URL ||
                 (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:4321');
 
 console.log('[Config] Site URL:', siteUrl);
-
-const isProduction = siteUrl.includes('goodsetup.store');
 
 // https://astro.build/config
 export default defineConfig({
@@ -26,19 +23,9 @@ export default defineConfig({
   },
   integrations: [
     tailwind(),
-    // 仅在生产环境启用 sitemap
-    isProduction && sitemap({
-      changefreq: 'weekly',
-      priority: 0.7,
-      lastmod: new Date(),
-      filter: (page) => {
-        // 排除草稿、后台管理、API 路由
-        return !page.includes('/draft/') && 
-               !page.includes('/admin') && 
-               !page.includes('/api/');
-      },
-    }),
-  ].filter(Boolean),
+    // 注意：不使用 @astrojs/sitemap 插件，因为它无法处理 server 模式的动态页面
+    // 我们使用自定义的 sitemap-index.xml.ts 来生成 sitemap
+  ],
   vite: {
     ssr: {
       noExternal: ['@supabase/supabase-js'],
