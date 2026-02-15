@@ -7,9 +7,9 @@ import { articles } from '@lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 export const GET: APIRoute = async ({ site }) => {
-  // 确保没有尾部斜杠
-  let siteUrl = site?.toString() || 'http://localhost:4321';
-  siteUrl = siteUrl.replace(/\/+$/, '');
+  // 使用 Astro 的 site 配置，确保与 astro.config.mjs 一致
+  let siteUrl = site?.toString() || 'https://www.goodsetup.store';
+  siteUrl = siteUrl.replace(/\/+$/, ''); // 移除尾部斜杠
   
   // 静态页面
   const staticPages = [
@@ -36,6 +36,9 @@ export const GET: APIRoute = async ({ site }) => {
     
     const allArticles = [...publishedArticles, ...scheduledArticles];
     
+    console.log(`[Sitemap] Found ${allArticles.length} articles (${publishedArticles.length} published, ${scheduledArticles.length} scheduled)`);
+    console.log('[Sitemap] Sample articles:', allArticles.slice(0, 3).map(a => ({ slug: a.slug, status: a.status })));
+    
     articlePages = allArticles.map(article => {
       // 处理日期字段 - 从数据库返回的是ISO字符串
       const dateToUse = article.updatedAt || article.createdAt;
@@ -49,9 +52,9 @@ export const GET: APIRoute = async ({ site }) => {
       };
     });
     
-    console.log(`Sitemap: Found ${allArticles.length} articles (${publishedArticles.length} published, ${scheduledArticles.length} scheduled)`);
+    console.log(`[Sitemap] Generated ${articlePages.length} article URLs`);
   } catch (error) {
-    console.error('Error fetching articles for sitemap:', error);
+    console.error('[Sitemap] Error fetching articles:', error);
   }
   
   const allPages = [...staticPages, ...articlePages];
