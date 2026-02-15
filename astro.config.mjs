@@ -13,7 +13,6 @@ export default defineConfig({
   output: 'hybrid', // 静态优先 + 按需 SSR
   adapter: vercel({
     webAnalytics: { enabled: true },
-    runtime: 'nodejs22.x',
   }),
   integrations: [
     tailwind(),
