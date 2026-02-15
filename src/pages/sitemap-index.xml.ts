@@ -36,12 +36,26 @@ export const GET: APIRoute = async ({ site }) => {
     
     const allArticles = [...publishedArticles, ...scheduledArticles];
     
-    articlePages = allArticles.map(article => ({
-      loc: `/${article.slug}`,
-      changefreq: 'monthly',
-      priority: article.featured ? 0.9 : 0.8,
-      lastmod: article.updatedAt?.toISOString().split('T')[0] || article.createdAt?.toISOString().split('T')[0],
-    }));
+    articlePages = allArticles.map(article => {
+      // 处理日期字段 - 可能是Date对象或ISO字符串
+      let lastmod: string | undefined;
+      if (article.updatedAt) {
+        lastmod = typeof article.updatedAt === 'string' 
+          ? article.updatedAt.split('T')[0] 
+          : article.updatedAt.toISOString().split('T')[0];
+      } else if (article.createdAt) {
+        lastmod = typeof article.createdAt === 'string'
+          ? article.createdAt.split('T')[0]
+          : article.createdAt.toISOString().split('T')[0];
+      }
+      
+      return {
+        loc: `/${article.slug}`,
+        changefreq: 'monthly',
+        priority: article.featured ? 0.9 : 0.8,
+        lastmod,
+      };
+    });
     
     console.log(`Sitemap: Found ${allArticles.length} articles (${publishedArticles.length} published, ${scheduledArticles.length} scheduled)`);
   } catch (error) {
