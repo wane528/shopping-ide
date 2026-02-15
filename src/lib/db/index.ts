@@ -1,23 +1,10 @@
 // src/lib/db/index.ts
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/vercel-postgres';
+import { sql } from '@vercel/postgres';
 import * as schema from './schema';
 
-// 使用 Supabase Postgres
-// 优先使用非池化连接以避免 SSL 问题
-const connectionString = process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL || process.env.DATABASE_URL;
-
-if (!connectionString) {
-  throw new Error('POSTGRES_URL or DATABASE_URL environment variable is required');
-}
-
-// 配置 SSL - 始终禁用证书验证以解决 Supabase/Neon 的自签名证书问题
-const pool = new Pool({
-  connectionString,
-  ssl: { rejectUnauthorized: false },
-});
-
-export const db = drizzle(pool, { schema });
+// 使用 Vercel Postgres/Supabase
+export const db = drizzle(sql, { schema });
 
 // 辅助函数：获取所有已发布文章
 export async function getPublishedArticles() {
