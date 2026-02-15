@@ -11,15 +11,10 @@ if (!connectionString) {
   throw new Error('POSTGRES_URL or DATABASE_URL environment variable is required');
 }
 
-// 配置 SSL
-// Supabase 需要 SSL 连接，但可能使用自签名证书
-const sslConfig = process.env.NODE_ENV === 'production'
-  ? { rejectUnauthorized: false }
-  : false;
-
+// 配置 SSL - 始终禁用证书验证以解决 Supabase/Neon 的自签名证书问题
 const pool = new Pool({
   connectionString,
-  ssl: sslConfig,
+  ssl: { rejectUnauthorized: false },
 });
 
 export const db = drizzle(pool, { schema });
