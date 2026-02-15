@@ -1,10 +1,23 @@
 // src/lib/db/index.ts
-import { drizzle } from 'drizzle-orm/vercel-postgres';
-import { sql } from '@vercel/postgres';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 import * as schema from './schema';
 
-// 使用 Vercel Postgres
-export const db = drizzle(sql, { schema });
+// 使用 Supabase Postgres (通过 POSTGRES_URL 环境变量)
+const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error('POSTGRES_URL or DATABASE_URL environment variable is required');
+}
+
+const pool = new Pool({
+  connectionString,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
+
+export const db = drizzle(pool, { schema });
 
 // 辅助函数：获取所有已发布文章
 export async function getPublishedArticles() {

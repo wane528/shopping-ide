@@ -5,6 +5,6 @@ export default defineConfig({
   out: './drizzle/migrations',
   dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.POSTGRES_URL || process.env.DATABASE_URL || 'postgresql://localhost:5432/goodsetup',
+    url: process.env.DATABASE_URL || process.env.POSTGRES_URL || 'postgresql://localhost:5432/goodsetup',
   },
 });
