@@ -52,20 +52,7 @@ async function getRelatedArticles(category: string, currentSlug: string) {
   return result.filter(a => a.slug !== currentSlug && a.status === 'published');
 }
 
-// 动态路由处理
-export async function getStaticPaths() {
-  // 获取所有已发布的文章
-  const allArticles = await db
-    .select()
-    .from(articles)
-    .where(eq(articles.status, 'published'));
-  
-  return allArticles.map((article) => ({
-    params: { slug: article.slug },
-    props: { article },
-  }));
-}
-
+// SSR 模式：从请求参数获取 slug
 const { article } = Astro.props;
 
 // 如果没有文章数据，尝试从数据库获取
@@ -96,7 +83,7 @@ const description = currentArticle.description;
 
 // 目录生成 - 只提取 H2 和 H3
 const headingMatches = currentArticle.content.match(/^##[^#].*$|^###[^#].*$/gm) || [];
-const toc = headingMatches.map(h => {
+const toc = headingMatches.map((h: string) => {
   const level = (h.match(/^#+/) || [''])[0].length;
   const text = h.replace(/^#+\s/, '');
   const slug = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');

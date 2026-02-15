@@ -18,15 +18,14 @@ const categoryData: Record<string, { name: string; description: string }> = {
   resources: { name: 'Resources', description: 'Curated collections of tools, templates, and helpful resources.' },
 };
 
-export async function getStaticPaths() {
-  return Object.keys(categoryData).map((slug) => ({
-    params: { category: slug },
-    props: { slug },
-  }));
+// SSR 模式：从请求参数获取 slug
+const slug = Astro.params.category;
+
+// 如果 slug 不存在，返回 404
+if (!slug) {
+  return Astro.redirect('/404');
 }
 
-// 在 SSR 模式下使用 Astro.params，在 SSG 模式下使用 Astro.props
-const slug = Astro.params.category || Astro.props.slug;
 const data = categoryData[slug] || { name: slug, description: '' };
 const title = data.name;
 const description = data.description;
