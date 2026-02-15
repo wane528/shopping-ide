@@ -198,7 +198,7 @@ const relatedArticles = relatedArticlesList.slice(0, 2).map(a => ({
   )} />
   
   <!-- BreadcrumbList Schema -->
-  <script type="application/ld+json" set:html={JSON.stringify(
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(
     generateBreadcrumbSchema([
       { name: 'Home', url: '/' },
       { name: currentArticle.category, url: `/category/${currentArticle.category}` },
@@ -208,7 +208,7 @@ const relatedArticles = relatedArticlesList.slice(0, 2).map(a => ({
   
   <!-- FAQ Schema -->
   {currentArticle.faqJson && (
-    <script type="application/ld+json" set:html={JSON.stringify(
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(
       generateFAQSchema(JSON.parse(currentArticle.faqJson))
     )} />
   )}

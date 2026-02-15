@@ -2,7 +2,6 @@
 // src/pages/about.astro
 import BaseLayout from '@layouts/BaseLayout.astro';
 import Breadcrumb from '@components/common/Breadcrumb.astro';
-import Newsletter from '@components/common/Newsletter.astro';
 import { generateOrganizationSchema } from '@lib/seo';
 
 const title = 'About';
@@ -167,5 +166,5 @@ const breadcrumbs = [
   </main>
   
   <!-- Organization Schema -->
-  <script type="application/ld+json" set:html={JSON.stringify(generateOrganizationSchema())} />
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(generateOrganizationSchema())} />
 </BaseLayout>
