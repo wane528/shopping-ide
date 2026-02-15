@@ -96,13 +96,47 @@ const errorMessage = Astro.url.searchParams.get('error');
       </form>
     </div>
     
-    <a href="/admin/articles/new" class="admin-btn admin-btn-primary">
-      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-      </svg>
-      新建文章
-    </a>
+    <div class="flex items-center gap-3">
+      <!-- 导入按钮 -->
+      <button id="import-btn" class="admin-btn admin-btn-secondary">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+        </svg>
+        导入
+      </button>
+      
+      <!-- 导出按钮 -->
+      <div class="relative">
+        <button id="export-btn" class="admin-btn admin-btn-secondary">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          导出
+          <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <div id="export-menu" class="hidden absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10">
+          <a href="/api/admin/articles/export?format=json" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg">
+            导出为 JSON
+          </a>
+          <a href="/api/admin/articles/export?format=csv" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg">
+            导出为 CSV
+          </a>
+        </div>
+      </div>
+      
+      <a href="/admin/articles/new" class="admin-btn admin-btn-primary">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        新建文章
+      </a>
+    </div>
   </div>
+  
+  <!-- 导入文件输入（隐藏） -->
+  <input type="file" id="import-file" accept=".json,.csv" class="hidden" />
   
   <!-- 文章列表 -->
   <div class="admin-card">
@@ -179,23 +213,41 @@ const errorMessage = Astro.url.searchParams.get('error');
                 )}
               </td>
               <td class="text-gray-500 dark:text-gray-400">
-                {article.status === 'scheduled' && article.scheduledAt ? (
-                  <div>
-                    <span class="text-blue-600 dark:text-blue-400 text-xs">
-                      {new Date(article.scheduledAt).toLocaleString('zh-CN', {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </span>
-                    <p class="text-xs text-gray-400">定时发布</p>
-                  </div>
-                ) : article.publishedAt ? (
-                  new Date(article.publishedAt).toLocaleDateString('zh-CN')
-                ) : (
-                  new Date(article.createdAt!).toLocaleDateString('zh-CN')
-                )}
+                <button 
+                  class="edit-date-btn hover:text-primary-600 dark:hover:text-primary-400 cursor-pointer text-left"
+                  data-article-id={article.id}
+                  data-published-at={article.publishedAt || ''}
+                  data-scheduled-at={article.scheduledAt || ''}
+                  data-status={article.status}
+                >
+                  {article.status === 'scheduled' && article.scheduledAt ? (
+                    <div>
+                      <span class="text-blue-600 dark:text-blue-400 text-xs">
+                        {new Date(article.scheduledAt).toLocaleString('zh-CN', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                      <p class="text-xs text-gray-400">定时发布</p>
+                    </div>
+                  ) : article.publishedAt ? (
+                    <div>
+                      <span class="text-sm">
+                        {new Date(article.publishedAt).toLocaleDateString('zh-CN')}
+                      </span>
+                      <p class="text-xs text-gray-400">点击修改</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <span class="text-sm">
+                        {new Date(article.createdAt!).toLocaleDateString('zh-CN')}
+                      </span>
+                      <p class="text-xs text-gray-400">未发布</p>
+                    </div>
+                  )}
+                </button>
               </td>
               <td>
                 <div class="flex items-center gap-2">
@@ -246,6 +298,216 @@ const errorMessage = Astro.url.searchParams.get('error');
           alert('删除失败，请重试。');
         }
       }
+    });
+  });
+
+  // 导出菜单切换
+  const exportBtn = document.getElementById('export-btn');
+  const exportMenu = document.getElementById('export-menu');
+  
+  exportBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    exportMenu?.classList.toggle('hidden');
+  });
+  
+  document.addEventListener('click', () => {
+    exportMenu?.classList.add('hidden');
+  });
+
+  // 导入功能
+  const importBtn = document.getElementById('import-btn');
+  const importFile = document.getElementById('import-file') as HTMLInputElement;
+  
+  importBtn?.addEventListener('click', () => {
+    importFile?.click();
+  });
+  
+  importFile?.addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    
+    if (!file.name.endsWith('.json') && !file.name.endsWith('.csv')) {
+      alert('仅支持 JSON 和 CSV 格式');
+      return;
+    }
+    
+    if (!confirm(`确定要导入 ${file.name} 吗？这将创建新文章。`)) {
+      return;
+    }
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      const response = await fetch('/api/admin/articles/import', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        let message = `导入完成！\n成功: ${result.success} 篇\n失败: ${result.failed} 篇`;
+        
+        if (result.created.authors.length > 0) {
+          message += `\n\n新建作者: ${result.created.authors.join(', ')}`;
+        }
+        if (result.created.categories.length > 0) {
+          message += `\n新建分类: ${result.created.categories.join(', ')}`;
+        }
+        if (result.created.tags.length > 0) {
+          message += `\n新建标签: ${result.created.tags.join(', ')}`;
+        }
+        
+        if (result.errors.length > 0) {
+          message += `\n\n错误:\n${result.errors.slice(0, 5).join('\n')}`;
+          if (result.errors.length > 5) {
+            message += `\n... 还有 ${result.errors.length - 5} 个错误`;
+          }
+        }
+        
+        alert(message);
+        window.location.reload();
+      } else {
+        alert('导入失败: ' + (result.error || '未知错误'));
+      }
+    } catch (error) {
+      alert('导入失败，请重试。');
+      console.error(error);
+    }
+    
+    // 重置文件输入
+    importFile.value = '';
+  });
+
+  // 快速编辑发布时间
+  document.querySelectorAll('.edit-date-btn').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const target = e.currentTarget as HTMLElement;
+      const articleId = parseInt(target.getAttribute('data-article-id') || '0');
+      const currentPublishedAt = target.getAttribute('data-published-at') || '';
+      const currentScheduledAt = target.getAttribute('data-scheduled-at') || '';
+      const currentStatus = target.getAttribute('data-status') || 'draft';
+      
+      // 创建弹窗
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+      modal.innerHTML = `
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">修改发布时间</h3>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                状态
+              </label>
+              <select id="edit-status" class="admin-input w-full">
+                <option value="draft" ${currentStatus === 'draft' ? 'selected' : ''}>草稿</option>
+                <option value="published" ${currentStatus === 'published' ? 'selected' : ''}>已发布</option>
+                <option value="scheduled" ${currentStatus === 'scheduled' ? 'selected' : ''}>定时发布</option>
+              </select>
+            </div>
+            
+            <div id="published-date-field" class="${currentStatus === 'published' ? '' : 'hidden'}">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                发布时间
+              </label>
+              <input 
+                type="datetime-local" 
+                id="edit-published-at" 
+                class="admin-input w-full"
+                value="${currentPublishedAt ? new Date(currentPublishedAt).toISOString().slice(0, 16) : ''}"
+              />
+            </div>
+            
+            <div id="scheduled-date-field" class="${currentStatus === 'scheduled' ? '' : 'hidden'}">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                定时发布时间
+              </label>
+              <input 
+                type="datetime-local" 
+                id="edit-scheduled-at" 
+                class="admin-input w-full"
+                value="${currentScheduledAt ? new Date(currentScheduledAt).toISOString().slice(0, 16) : ''}"
+              />
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-3 mt-6">
+            <button id="save-date-btn" class="admin-btn admin-btn-primary flex-1">
+              保存
+            </button>
+            <button id="cancel-date-btn" class="admin-btn admin-btn-secondary flex-1">
+              取消
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // 状态切换显示对应字段
+      const statusSelect = modal.querySelector('#edit-status') as HTMLSelectElement;
+      const publishedField = modal.querySelector('#published-date-field') as HTMLElement;
+      const scheduledField = modal.querySelector('#scheduled-date-field') as HTMLElement;
+      
+      statusSelect.addEventListener('change', () => {
+        const status = statusSelect.value;
+        publishedField.classList.toggle('hidden', status !== 'published');
+        scheduledField.classList.toggle('hidden', status !== 'scheduled');
+      });
+      
+      // 保存
+      modal.querySelector('#save-date-btn')?.addEventListener('click', async () => {
+        const status = (modal.querySelector('#edit-status') as HTMLSelectElement).value;
+        const publishedAt = (modal.querySelector('#edit-published-at') as HTMLInputElement).value;
+        const scheduledAt = (modal.querySelector('#edit-scheduled-at') as HTMLInputElement).value;
+        
+        const updateData: any = {
+          articleId,
+          status,
+        };
+        
+        if (status === 'published' && publishedAt) {
+          updateData.publishedAt = new Date(publishedAt).toISOString();
+        } else if (status === 'published') {
+          updateData.publishedAt = new Date().toISOString();
+        }
+        
+        if (status === 'scheduled' && scheduledAt) {
+          updateData.scheduledAt = new Date(scheduledAt).toISOString();
+        }
+        
+        try {
+          const response = await fetch('/api/admin/articles/update-date', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updateData),
+          });
+          
+          if (response.ok) {
+            window.location.reload();
+          } else {
+            alert('更新失败，请重试');
+          }
+        } catch (error) {
+          alert('更新失败，请重试');
+        }
+        
+        modal.remove();
+      });
+      
+      // 取消
+      modal.querySelector('#cancel-date-btn')?.addEventListener('click', () => {
+        modal.remove();
+      });
+      
+      // 点击背景关闭
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.remove();
+        }
+      });
     });
   });
 </script>
