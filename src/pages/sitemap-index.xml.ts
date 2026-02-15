@@ -37,17 +37,9 @@ export const GET: APIRoute = async ({ site }) => {
     const allArticles = [...publishedArticles, ...scheduledArticles];
     
     articlePages = allArticles.map(article => {
-      // 处理日期字段 - 可能是Date对象或ISO字符串
-      let lastmod: string | undefined;
-      if (article.updatedAt) {
-        lastmod = typeof article.updatedAt === 'string' 
-          ? article.updatedAt.split('T')[0] 
-          : article.updatedAt.toISOString().split('T')[0];
-      } else if (article.createdAt) {
-        lastmod = typeof article.createdAt === 'string'
-          ? article.createdAt.split('T')[0]
-          : article.createdAt.toISOString().split('T')[0];
-      }
+      // 处理日期字段 - 从数据库返回的是ISO字符串
+      const dateToUse = article.updatedAt || article.createdAt;
+      const lastmod = dateToUse ? dateToUse.split('T')[0] : undefined;
       
       return {
         loc: `/${article.slug}`,
