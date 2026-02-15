@@ -1,12 +1,4 @@
 {
-  "build": {
-    "env": {
-      "NODE_VERSION": "20"
-    }
-  },
-  "functions": {
-    "_render": {
-      "runtime": "nodejs20.x"
-    }
-  }
+  "buildCommand": "npm run build",
+  "framework": null
 }
