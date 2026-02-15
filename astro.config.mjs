@@ -3,8 +3,13 @@ import tailwind from '@astrojs/tailwind';
 import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
 
-// 从环境变量获取站点 URL，开发环境默认 localhost
-const siteUrl = process.env.SITE_URL || 'http://localhost:4321';
+// 从环境变量获取站点 URL
+// Vercel 会自动设置 VERCEL_URL，我们优先使用自定义的 SITE_URL
+const siteUrl = process.env.SITE_URL || 
+                (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:4321');
+
+console.log('[Config] Site URL:', siteUrl);
+
 const isProduction = siteUrl.includes('goodsetup.store');
 
 // https://astro.build/config

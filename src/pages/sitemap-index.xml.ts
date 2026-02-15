@@ -11,17 +11,19 @@ export const GET: APIRoute = async ({ site }) => {
   let siteUrl = site?.toString() || 'https://www.goodsetup.store';
   siteUrl = siteUrl.replace(/\/+$/, ''); // 移除尾部斜杠
   
+  const now = new Date().toISOString().split('T')[0];
+  
   // 静态页面
   const staticPages = [
-    { loc: '/', changefreq: 'weekly', priority: 1.0, lastmod: new Date().toISOString().split('T')[0] },
-    { loc: '/about', changefreq: 'monthly', priority: 0.5 },
-    { loc: '/category/guides', changefreq: 'weekly', priority: 0.7 },
-    { loc: '/category/reviews', changefreq: 'weekly', priority: 0.7 },
-    { loc: '/category/tips', changefreq: 'weekly', priority: 0.7 },
-    { loc: '/category/resources', changefreq: 'weekly', priority: 0.7 },
+    { loc: '/', changefreq: 'daily', priority: 1.0, lastmod: now },
+    { loc: '/about', changefreq: 'monthly', priority: 0.5, lastmod: now },
+    { loc: '/category/guides', changefreq: 'daily', priority: 0.8, lastmod: now },
+    { loc: '/category/reviews', changefreq: 'daily', priority: 0.8, lastmod: now },
+    { loc: '/category/tips', changefreq: 'daily', priority: 0.8, lastmod: now },
+    { loc: '/category/resources', changefreq: 'daily', priority: 0.8, lastmod: now },
   ];
   
-  // 从数据库获取已发布和已调度的文章
+  // 从数据库获取已发布的文章（不包括 scheduled 和 draft）
   let articlePages: { loc: string; changefreq: string; priority: number; lastmod?: string }[] = [];
   try {
     const publishedArticles = await db
@@ -29,20 +31,20 @@ export const GET: APIRoute = async ({ site }) => {
       .from(articles)
       .where(eq(articles.status, 'published'));
     
-    const scheduledArticles = await db
-      .select()
-      .from(articles)
-      .where(eq(articles.status, 'scheduled'));
+    console.log(`[Sitemap] Found ${publishedArticles.length} published articles`);
     
-    const allArticles = [...publishedArticles, ...scheduledArticles];
+    if (publishedArticles.length > 0) {
+      console.log('[Sitemap] Sample articles:', publishedArticles.slice(0, 3).map(a => ({ 
+        slug: a.slug, 
+        status: a.status,
+        publishedAt: a.publishedAt 
+      })));
+    }
     
-    console.log(`[Sitemap] Found ${allArticles.length} articles (${publishedArticles.length} published, ${scheduledArticles.length} scheduled)`);
-    console.log('[Sitemap] Sample articles:', allArticles.slice(0, 3).map(a => ({ slug: a.slug, status: a.status })));
-    
-    articlePages = allArticles.map(article => {
+    articlePages = publishedArticles.map(article => {
       // 处理日期字段 - 从数据库返回的是ISO字符串
-      const dateToUse = article.updatedAt || article.createdAt;
-      const lastmod = dateToUse ? dateToUse.split('T')[0] : undefined;
+      const dateToUse = article.updatedAt || article.publishedAt || article.createdAt;
+      const lastmod = dateToUse ? dateToUse.split('T')[0] : now;
       
       return {
         loc: `/${article.slug}`,
@@ -55,15 +57,17 @@ export const GET: APIRoute = async ({ site }) => {
     console.log(`[Sitemap] Generated ${articlePages.length} article URLs`);
   } catch (error) {
     console.error('[Sitemap] Error fetching articles:', error);
+    console.error('[Sitemap] Error details:', error instanceof Error ? error.message : String(error));
   }
   
   const allPages = [...staticPages, ...articlePages];
+  console.log(`[Sitemap] Total URLs in sitemap: ${allPages.length}`);
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${allPages.map(page => `  <url>
-    <loc>${siteUrl}${page.loc}</loc>${page.lastmod ? `
-    <lastmod>${page.lastmod}</lastmod>` : ''}
+    <loc>${siteUrl}${page.loc}</loc>
+    <lastmod>${page.lastmod}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
   </url>`).join('\n')}
@@ -72,7 +76,7 @@ ${allPages.map(page => `  <url>
   return new Response(sitemap, {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=300', // 减少到5分钟缓存
+      'Cache-Control': 'public, max-age=300', // 5分钟缓存
     },
   });
 };
