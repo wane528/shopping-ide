@@ -220,3 +220,41 @@ export function generateSpeakableSchema(config: {
     "cssSelector": [config.headlineSelector, config.articleBodySelector]
   };
 }
+
+/**
+ * 生成 Review Schema（产品评测结构化数据）
+ */
+export function generateReviewSchema(config: {
+  productName: string;
+  reviewBody: string;
+  ratingValue: number;
+  bestRating?: number;
+  worstRating?: number;
+  authorName?: string;
+  datePublished?: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Review",
+    "itemReviewed": {
+      "@type": "Product",
+      "name": config.productName,
+    },
+    "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": config.ratingValue,
+      "bestRating": config.bestRating || 5,
+      "worstRating": config.worstRating || 1,
+    },
+    "reviewBody": config.reviewBody,
+    "author": {
+      "@type": config.authorName ? "Person" : "Organization",
+      "name": config.authorName || SITE_NAME,
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": SITE_NAME,
+    },
+    ...(config.datePublished && { "datePublished": config.datePublished }),
+  };
+}

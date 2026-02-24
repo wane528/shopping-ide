@@ -1,0 +1,40 @@
+---
+// src/components/article/SidebarRelated.astro
+// Compact related articles list for sidebar
+
+interface Article {
+  title: string;
+  slug: string;
+  category: string;
+}
+
+interface Props {
+  articles: Article[];
+  title?: string;
+}
+
+const { articles, title = 'Related Articles' } = Astro.props;
+---
+
+{articles.length > 0 && (
+  <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
+    <h4 class="text-caption font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+      {title}
+    </h4>
+    <ul class="space-y-2.5">
+      {articles.map(article => (
+        <li>
+          <a
+            href={`/${article.slug}`}
+            class="block text-sm text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors leading-snug"
+          >
+            <span class="text-[10px] uppercase font-medium text-gray-400 dark:text-gray-500 block mb-0.5">
+              {article.category}
+            </span>
+            {article.title}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}

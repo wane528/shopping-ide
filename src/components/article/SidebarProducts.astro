@@ -1,0 +1,65 @@
+---
+// src/components/article/SidebarProducts.astro
+// Sidebar product recommendations with affiliate links
+
+interface Product {
+  name: string;
+  price?: string;
+  affiliateUrl?: string;
+  badge?: string;
+}
+
+interface Props {
+  products?: Product[];
+  title?: string;
+}
+
+const { title = 'Recommended Products' } = Astro.props;
+
+// Default products for cat urinary/kidney health
+const defaultProducts: Product[] = [
+  { name: "Hill's c/d Multicare Urinary Care", price: 'From $42', affiliateUrl: '#', badge: 'Top Pick' },
+  { name: 'Royal Canin Urinary SO', price: 'From $45', affiliateUrl: '#' },
+  { name: 'Purina Pro Plan Veterinary UR', price: 'From $38', affiliateUrl: '#' },
+];
+
+const products = Astro.props.products || defaultProducts;
+---
+
+<div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
+  <h4 class="text-caption font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+    {title}
+  </h4>
+  <ul class="space-y-3">
+    {products.map(product => (
+      <li class="flex items-start gap-2">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5">
+            {product.badge && (
+              <span class="text-[10px] font-medium bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-1.5 py-0.5 rounded">
+                {product.badge}
+              </span>
+            )}
+          </div>
+          <p class="text-sm font-medium text-gray-900 dark:text-white leading-tight mt-1">{product.name}</p>
+          {product.price && (
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{product.price}</p>
+          )}
+        </div>
+        {product.affiliateUrl && (
+          <a
+            href={product.affiliateUrl}
+            target="_blank"
+            rel="nofollow sponsored noopener"
+            class="flex-shrink-0 text-xs font-medium text-primary-600 dark:text-primary-400 hover:underline mt-1"
+          >
+            View →
+          </a>
+        )}
+      </li>
+    ))}
+  </ul>
+  <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-3 italic">
+    * Affiliate links. We may earn a commission at no extra cost to you.
+  </p>
+</div>

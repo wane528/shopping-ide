@@ -17,13 +17,12 @@ const toc = headings.filter(h => h.depth >= 2 && h.depth <= 3);
 ---
 
 {toc.length > 0 && (
-  <aside class="hidden lg:block">
-    <div class="sticky top-24">
-      <h4 class="text-caption font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-        On This Page
-      </h4>
-      <nav>
-        <ul class="space-y-2" id="table-of-contents">
+  <div class="toc-wrapper">
+    <h4 class="text-caption font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+      On This Page
+    </h4>
+    <nav>
+      <ul class="space-y-2" id="table-of-contents">
           {toc.map((heading) => (
             <li class={heading.depth === 3 ? 'ml-3' : ''}>
               <a
@@ -37,8 +36,7 @@ const toc = headings.filter(h => h.depth >= 2 && h.depth <= 3);
           ))}
         </ul>
       </nav>
-    </div>
-  </aside>
+  </div>
 )}
 
 <script>

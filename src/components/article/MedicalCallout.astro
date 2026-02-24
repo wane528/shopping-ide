@@ -1,0 +1,65 @@
+---
+// src/components/article/MedicalCallout.astro
+// Medical alert/callout box for urgent health information
+
+interface Props {
+  type?: 'emergency' | 'warning' | 'info' | 'tip';
+  title?: string;
+}
+
+const { type = 'warning', title } = Astro.props;
+
+const styles = {
+  emergency: {
+    bg: 'bg-red-50 dark:bg-red-900/20',
+    border: 'border-red-300 dark:border-red-800',
+    icon: '🚨',
+    iconColor: 'text-red-600 dark:text-red-400',
+    titleColor: 'text-red-800 dark:text-red-300',
+    bodyColor: 'text-red-700 dark:text-red-400',
+    defaultTitle: 'Emergency — See Your Vet Immediately',
+  },
+  warning: {
+    bg: 'bg-amber-50 dark:bg-amber-900/20',
+    border: 'border-amber-300 dark:border-amber-800',
+    icon: '⚠️',
+    iconColor: 'text-amber-600 dark:text-amber-400',
+    titleColor: 'text-amber-800 dark:text-amber-300',
+    bodyColor: 'text-amber-700 dark:text-amber-400',
+    defaultTitle: 'Important Warning',
+  },
+  info: {
+    bg: 'bg-blue-50 dark:bg-blue-900/20',
+    border: 'border-blue-300 dark:border-blue-800',
+    icon: 'ℹ️',
+    iconColor: 'text-blue-600 dark:text-blue-400',
+    titleColor: 'text-blue-800 dark:text-blue-300',
+    bodyColor: 'text-blue-700 dark:text-blue-400',
+    defaultTitle: 'Good to Know',
+  },
+  tip: {
+    bg: 'bg-green-50 dark:bg-green-900/20',
+    border: 'border-green-300 dark:border-green-800',
+    icon: '💡',
+    iconColor: 'text-green-600 dark:text-green-400',
+    titleColor: 'text-green-800 dark:text-green-300',
+    bodyColor: 'text-green-700 dark:text-green-400',
+    defaultTitle: 'Helpful Tip',
+  },
+};
+
+const s = styles[type];
+const displayTitle = title || s.defaultTitle;
+---
+
+<div class={`callout rounded-lg border-2 ${s.bg} ${s.border} p-4 my-6`} role="alert">
+  <div class="flex items-start gap-3">
+    <span class="text-xl flex-shrink-0 mt-0.5">{s.icon}</span>
+    <div class="flex-1 min-w-0">
+      <p class={`font-semibold text-sm ${s.titleColor} mb-1`}>{displayTitle}</p>
+      <div class={`text-sm ${s.bodyColor} [&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ul]:space-y-1`}>
+        <slot />
+      </div>
+    </div>
+  </div>
+</div>

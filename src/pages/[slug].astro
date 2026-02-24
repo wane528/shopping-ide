@@ -5,6 +5,9 @@ import Breadcrumb from '@components/common/Breadcrumb.astro';
 import TableOfContents from '@components/article/TableOfContents.astro';
 import AuthorCard from '@components/article/AuthorCard.astro';
 import RelatedArticles from '@components/article/RelatedArticles.astro';
+import SidebarAuthor from '@components/article/SidebarAuthor.astro';
+import SidebarProducts from '@components/article/SidebarProducts.astro';
+import SidebarRelated from '@components/article/SidebarRelated.astro';
 import Newsletter from '@components/common/Newsletter.astro';
 import { generateArticleSchema, generateBreadcrumbSchema, generateFAQSchema } from '@lib/seo';
 import { marked } from 'marked';
@@ -88,6 +91,26 @@ const relatedArticles = relatedArticlesList.slice(0, 2).map(a => ({
   readingTime: a.readingTime || 5,
   publishedAt: a.publishedAt || '',
 }));
+
+// 侧边栏相关文章（更多，用于侧边栏紧凑列表）
+const sidebarRelated = relatedArticlesList.slice(0, 4).map(a => ({
+  title: a.title,
+  slug: a.slug,
+  category: a.category,
+}));
+
+// 解析作者资质
+let authorCredentials = '';
+let authorExpertise = '';
+if (author?.credentials) authorCredentials = author.credentials;
+if (author?.expertise) {
+  try {
+    const exp = JSON.parse(author.expertise);
+    authorExpertise = Array.isArray(exp) ? exp.join(', ') : author.expertise;
+  } catch {
+    authorExpertise = author.expertise;
+  }
+}
 ---
 
 <BaseLayout title={title} description={description} type="article">
@@ -114,11 +137,11 @@ const relatedArticles = relatedArticlesList.slice(0, 2).map(a => ({
                 <img src={author.avatar} alt={author.name} class="w-full h-full rounded-full object-cover" />
               ) : (
                 <span class="text-primary-600 dark:text-primary-400 font-medium text-caption">
-                  {author?.name?.charAt(0) || 'G'}
+                  {author?.name?.charAt(0) || 'K'}
                 </span>
               )}
             </div>
-            <span class="font-medium text-gray-700 dark:text-gray-300">{author?.name || 'GoodSetup Team'}</span>
+            <span class="font-medium text-gray-700 dark:text-gray-300">{author?.name || 'KittyKidney Team'}</span>
           </div>
           <span class="text-gray-300 dark:text-gray-600">·</span>
           <time datetime={currentArticle.publishedAt || ''}>
@@ -145,8 +168,8 @@ const relatedArticles = relatedArticlesList.slice(0, 2).map(a => ({
           <!-- Author Card -->
           <div class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800">
             <AuthorCard 
-              name={author?.name || 'GoodSetup Team'} 
-              bio={author?.bio || 'We create helpful guides and resources for better setups.'}
+              name={author?.name || 'KittyKidney Team'} 
+              bio={author?.bio || 'We provide evidence-based guides on feline urinary and kidney health to help cat owners make informed decisions.'}
               avatar={author?.avatar || undefined}
             />
           </div>
@@ -157,8 +180,28 @@ const relatedArticles = relatedArticlesList.slice(0, 2).map(a => ({
           )}
         </div>
         
-        <!-- Sidebar - TOC -->
-        <TableOfContents headings={toc} />
+        <!-- Sidebar -->
+        <aside class="hidden lg:block">
+          <div class="sticky top-24 space-y-6">
+            <!-- Table of Contents -->
+            <TableOfContents headings={toc} />
+            
+            <!-- Sidebar Author -->
+            <SidebarAuthor
+              name={author?.name || 'KittyKidney Team'}
+              bio={author?.bio || 'Evidence-based feline health content.'}
+              avatar={author?.avatar || undefined}
+              credentials={authorCredentials}
+              expertise={authorExpertise}
+            />
+            
+            <!-- Sidebar Products -->
+            <SidebarProducts />
+            
+            <!-- Sidebar Related Articles -->
+            <SidebarRelated articles={sidebarRelated} />
+          </div>
+        </aside>
       </div>
     </div>
   </article>
