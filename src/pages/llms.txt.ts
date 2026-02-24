@@ -29,28 +29,28 @@ export const GET: APIRoute = async ({ site }) => {
     console.error('Error fetching articles for llms.txt:', error);
   }
   
-  const llmsTxt = `# GoodSetup
+  const llmsTxt = `# KittyKidney
 
-> A content site focused on setup guides, reviews, tips, and resources.
+> An evidence-based resource for feline urinary and kidney health.
 
 ## Website
 
 - URL: ${siteUrl}
 - Language: English
-- Content-Type: Educational, Informational
+- Content-Type: Educational, Veterinary Health
 
 ## Content Overview
 
 ### Categories
-- Guides: In-depth tutorials and comprehensive guides
-- Reviews: Honest product and service reviews
-- Tips: Quick tips and practical advice
-- Resources: Curated tools and resources
+- Urinary Health: FLUTD, UTIs, crystals, bladder care guides
+- Kidney Disease: CKD stages, treatment, diet, home care
+- Reviews: Prescription diets, supplements, hydration products
+- Care Tips: Hydration, nutrition, daily wellness
 
 ### Content Standards
-- All content is fact-checked and reviewed
+- All content is vet-informed and evidence-based
 - Articles include publication and update dates
-- Author credentials are verified
+- Medical disclaimer included on all pages
 ${articleList}
 
 ## API Endpoints
@@ -61,8 +61,7 @@ ${articleList}
 
 ## Contact
 
-- Email: goodsetup@pronto.me
-- Twitter: @goodsetup
+- Email: hello@kittykidney.com
 `;
 
   return new Response(llmsTxt, {

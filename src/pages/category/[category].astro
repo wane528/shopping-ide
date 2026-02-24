@@ -12,10 +12,14 @@ import { eq, desc, and } from 'drizzle-orm';
 export const prerender = false;
 
 const categoryData: Record<string, { name: string; description: string }> = {
-  guides: { name: 'Guides', description: 'Step-by-step tutorials and comprehensive guides to help you master new skills.' },
-  reviews: { name: 'Reviews', description: 'In-depth, honest reviews of products and services to help you make informed decisions.' },
-  tips: { name: 'Tips', description: 'Quick tips and practical advice to improve your productivity and workflow.' },
-  resources: { name: 'Resources', description: 'Curated collections of tools, templates, and helpful resources.' },
+  'urinary-health': { name: 'Urinary Health', description: 'Comprehensive guides on feline urinary tract health, FLUTD, UTIs, and bladder care.' },
+  'kidney-disease': { name: 'Kidney Disease', description: 'Everything about chronic kidney disease (CKD) in cats — stages, diet, treatment, and home care.' },
+  reviews: { name: 'Reviews', description: 'Vet-informed reviews of urinary care foods, kidney diets, supplements, and hydration products.' },
+  'care-tips': { name: 'Care Tips', description: 'Practical tips for keeping your cat hydrated, healthy, and comfortable at home.' },
+  // Legacy categories (redirect-friendly)
+  guides: { name: 'Guides', description: 'In-depth guides on feline health topics.' },
+  tips: { name: 'Tips', description: 'Quick tips and practical advice.' },
+  resources: { name: 'Resources', description: 'Curated tools and resources.' },
 };
 
 // SSR 模式：从请求参数获取 slug

@@ -32,12 +32,12 @@ export const GET: APIRoute = async (context) => {
   }
 
   return rss({
-    title: 'GoodSetup',
-    description: 'Your guide to better setups - guides, reviews, tips, and resources.',
+    title: 'KittyKidney',
+    description: 'Evidence-based guides on feline urinary and kidney health for cat owners.',
     site,
     items: feedItems,
     customData: `<language>en-us</language>
-<copyright>Copyright ${new Date().getFullYear()} GoodSetup</copyright>
-<webMaster>goodsetup@pronto.me</webMaster>`,
+<copyright>Copyright ${new Date().getFullYear()} KittyKidney</copyright>
+<webMaster>hello@kittykidney.com</webMaster>`,
   });
 };

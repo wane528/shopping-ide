@@ -17,10 +17,10 @@ export const GET: APIRoute = async ({ site }) => {
   const staticPages = [
     { loc: '/', changefreq: 'daily', priority: 1.0, lastmod: now },
     { loc: '/about', changefreq: 'monthly', priority: 0.5, lastmod: now },
-    { loc: '/category/guides', changefreq: 'daily', priority: 0.8, lastmod: now },
+    { loc: '/category/urinary-health', changefreq: 'daily', priority: 0.8, lastmod: now },
+    { loc: '/category/kidney-disease', changefreq: 'daily', priority: 0.8, lastmod: now },
     { loc: '/category/reviews', changefreq: 'daily', priority: 0.8, lastmod: now },
-    { loc: '/category/tips', changefreq: 'daily', priority: 0.8, lastmod: now },
-    { loc: '/category/resources', changefreq: 'daily', priority: 0.8, lastmod: now },
+    { loc: '/category/care-tips', changefreq: 'daily', priority: 0.8, lastmod: now },
   ];
   
   // 从数据库获取已发布的文章（不包括 scheduled 和 draft）

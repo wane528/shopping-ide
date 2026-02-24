@@ -12,7 +12,7 @@ interface SEOConfig {
   noindex?: boolean;
 }
 
-const SITE_NAME = 'GoodSetup';
+const SITE_NAME = 'KittyKidney';
 // 使用环境变量配置域名，开发环境默认使用 localhost
 const SITE_URL = import.meta.env.SITE_URL || 'http://localhost:4321';
 const DEFAULT_IMAGE = '/images/og-default.jpg';
@@ -184,7 +184,7 @@ export function generateOrganizationSchema() {
     "logo": `${SITE_URL}/favicon.svg`,
     "contactPoint": {
       "@type": "ContactPoint",
-      "email": "goodsetup@pronto.me",
+      "email": "hello@kittykidney.com",
       "contactType": "customer service"
     }
   };
