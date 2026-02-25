@@ -3,7 +3,7 @@
 
 import type { APIRoute } from 'astro';
 import { db } from '@lib/db';
-import { articles } from '@lib/db/schema';
+import { articles, articleTags } from '@lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 export const prerender = false;
@@ -133,7 +133,10 @@ export const DELETE: APIRoute = async ({ params, cookies }) => {
   const { id } = params;
   
   try {
-    await db.delete(articles).where(eq(articles.id, parseInt(id || '0')));
+    const articleId = parseInt(id || '0');
+    // 先删关联标签记录，避免外键约束报错
+    await db.delete(articleTags).where(eq(articleTags.articleId, articleId));
+    await db.delete(articles).where(eq(articles.id, articleId));
     
     return new Response(
       JSON.stringify({ success: true }),
