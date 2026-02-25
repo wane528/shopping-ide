@@ -2,8 +2,22 @@
 // src/components/home/Hero.astro
 ---
 
-<section class="section bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-  <div class="container-content">
+<section class="hero-section relative overflow-hidden border-b border-gray-200 dark:border-gray-800">
+  <!-- Background image -->
+  <div class="hero-bg absolute inset-0">
+    <img
+      src="/images/hero-bg.png"
+      alt=""
+      class="w-full h-full object-cover object-center"
+      aria-hidden="true"
+      loading="eager"
+    />
+    <!-- Overlay: light mode slightly dark, dark mode darker -->
+    <div class="absolute inset-0 bg-white/70 dark:bg-gray-900/80"></div>
+  </div>
+
+  <!-- Content -->
+  <div class="relative container-content section">
     <div class="max-w-3xl">
       <h1 class="text-display text-gray-900 dark:text-white mb-6 text-balance">
         Pure Science for<br/>
@@ -26,3 +40,16 @@
     </div>
   </div>
 </section>
+
+<style>
+  .hero-section {
+    min-height: 420px;
+    display: flex;
+    align-items: center;
+  }
+
+  .hero-bg img {
+    /* Fallback if image fails to load */
+    background-color: theme('colors.gray.100');
+  }
+</style>
