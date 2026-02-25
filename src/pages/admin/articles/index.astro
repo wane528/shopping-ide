@@ -34,7 +34,7 @@ const articleList = whereClause
   ? await db.select().from(articles).where(whereClause).orderBy(desc(articles.createdAt))
   : await db.select().from(articles).orderBy(desc(articles.createdAt));
 
-const categories = ['guides', 'reviews', 'tips', 'resources'];
+const categories = ['urinary-health', 'kidney-disease', 'reviews', 'care-tips'];
 
 // 检查成功消息
 const successMessage = Astro.url.searchParams.get('success');

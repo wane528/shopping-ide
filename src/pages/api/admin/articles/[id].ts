@@ -122,7 +122,14 @@ export const POST: APIRoute = async ({ request, params, redirect }) => {
 };
 
 // 删除文章
-export const DELETE: APIRoute = async ({ params }) => {
+export const DELETE: APIRoute = async ({ params, cookies }) => {
+  if (cookies.get('admin_auth')?.value !== 'true') {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   const { id } = params;
   
   try {
