@@ -165,6 +165,18 @@ if (author?.expertise) {
           <span class="text-gray-300 dark:text-gray-600">·</span>
           <span>{currentArticle.readingTime || 5} min read</span>
         </div>
+
+        <!-- Hero Image -->
+        {currentArticle.heroImage && (
+          <div class="mt-8 rounded-xl overflow-hidden">
+            <img
+              src={currentArticle.heroImage}
+              alt={currentArticle.title}
+              class="w-full max-h-[480px] object-cover"
+              loading="eager"
+            />
+          </div>
+        )}
       </header>
       
       <!-- Content Grid -->

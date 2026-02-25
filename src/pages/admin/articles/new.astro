@@ -163,14 +163,22 @@ const errorMessage = Astro.url.searchParams.get('error');
       </div>
       
       <div class="admin-form-group">
-        <label for="heroImage" class="admin-label">封面图片 URL</label>
-        <input 
-          type="text" 
-          id="heroImage" 
-          name="heroImage"
-          class="admin-input"
-          placeholder="/images/cover.jpg 或完整 URL"
-        />
+        <label for="heroImage" class="admin-label">封面图片</label>
+        <div class="flex gap-2">
+          <input 
+            type="text" 
+            id="heroImage" 
+            name="heroImage"
+            class="admin-input flex-1"
+            placeholder="/uploads/cover.jpg 或完整 URL"
+          />
+          <button type="button" id="hero-media-btn" class="admin-btn admin-btn-secondary whitespace-nowrap">
+            从媒体库选择
+          </button>
+        </div>
+        <div id="hero-preview" class="mt-2 hidden">
+          <img id="hero-preview-img" src="" alt="封面预览" class="h-32 rounded-lg object-cover border border-gray-200 dark:border-gray-700" />
+        </div>
       </div>
     </div>
     
@@ -309,6 +317,32 @@ const errorMessage = Astro.url.searchParams.get('error');
       </div>
     </div>
   </div>
+
+  <!-- 媒体选择器 Modal -->
+  <div id="media-picker-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl mx-4 overflow-hidden flex flex-col max-h-[80vh]">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
+        <h3 class="font-semibold text-gray-900 dark:text-white">选择图片</h3>
+        <button id="close-media-modal" type="button" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="p-4 shrink-0 border-b border-gray-200 dark:border-gray-700">
+        <label class="flex items-center gap-3 cursor-pointer border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-3 hover:border-primary-500 transition-colors">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+          </svg>
+          <span class="text-sm text-gray-600 dark:text-gray-400">上传新图片</span>
+          <input type="file" id="media-upload-input" accept="image/*" class="hidden" />
+        </label>
+      </div>
+      <div id="media-picker-grid" class="p-4 overflow-y-auto grid grid-cols-3 sm:grid-cols-4 gap-3">
+        <p class="col-span-full text-sm text-gray-400 text-center py-4">加载中...</p>
+      </div>
+    </div>
+  </div>
 </AdminLayout>
 
 <style>
@@ -371,6 +405,11 @@ const errorMessage = Astro.url.searchParams.get('error');
       if (action === 'internal-link') {
         // 打开内部链接选择器
         openInternalLinkPicker(start, end, selected);
+        return;
+      }
+      
+      if (action === 'image') {
+        openMediaPicker('content');
         return;
       }
       
@@ -464,6 +503,99 @@ const errorMessage = Astro.url.searchParams.get('error');
       (e.currentTarget as HTMLElement).classList.add('hidden');
     }
   });
+
+  // ── 媒体选择器 ──────────────────────────────────────────
+  let _mediaPickerMode: 'hero' | 'content' = 'hero';
+
+  async function openMediaPicker(mode: 'hero' | 'content') {
+    _mediaPickerMode = mode;
+    document.getElementById('media-picker-modal')!.classList.remove('hidden');
+    await loadMediaPickerFiles();
+  }
+
+  async function loadMediaPickerFiles() {
+    const grid = document.getElementById('media-picker-grid')!;
+    grid.innerHTML = '<p class="col-span-full text-sm text-gray-400 text-center py-4">加载中...</p>';
+    try {
+      const res = await fetch('/api/admin/media');
+      const data = await res.json();
+      const files = (data.files || []).filter((f: any) => f.type === 'image');
+      if (files.length === 0) {
+        grid.innerHTML = '<p class="col-span-full text-sm text-gray-400 text-center py-4">暂无图片，请先上传</p>';
+        return;
+      }
+      grid.innerHTML = files.map((f: any) => `
+        <button type="button" class="media-pick-item group relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-primary-500 transition-colors" data-url="${f.url}">
+          <img src="${f.url}" alt="${f.name}" class="w-full h-full object-cover" loading="lazy" />
+          <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"></div>
+        </button>
+      `).join('');
+      grid.querySelectorAll('.media-pick-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const url = (item as HTMLElement).dataset.url!;
+          if (_mediaPickerMode === 'hero') {
+            const heroInput = document.getElementById('heroImage') as HTMLInputElement;
+            heroInput.value = url;
+            updateHeroPreview(url);
+          } else {
+            // 插入到正文光标位置
+            const start = contentArea.selectionStart;
+            const end = contentArea.selectionEnd;
+            const markdown = `![image](${url})`;
+            contentArea.value = contentArea.value.substring(0, start) + markdown + contentArea.value.substring(end);
+            contentArea.focus();
+          }
+          document.getElementById('media-picker-modal')!.classList.add('hidden');
+        });
+      });
+    } catch {
+      grid.innerHTML = '<p class="col-span-full text-sm text-red-400 text-center py-4">加载失败</p>';
+    }
+  }
+
+  // 上传新图片
+  document.getElementById('media-upload-input')?.addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await fetch('/api/admin/media', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) await loadMediaPickerFiles();
+    } catch { /* ignore */ }
+    (e.target as HTMLInputElement).value = '';
+  });
+
+  // 封面图按钮
+  document.getElementById('hero-media-btn')?.addEventListener('click', () => openMediaPicker('hero'));
+
+  // image 工具栏按钮改为打开媒体选择器
+  // (覆盖之前 actions 里的 image 处理，在 data-action 监听里已处理)
+
+  // 封面图预览
+  function updateHeroPreview(url: string) {
+    const preview = document.getElementById('hero-preview')!;
+    const img = document.getElementById('hero-preview-img') as HTMLImageElement;
+    if (url) {
+      img.src = url;
+      preview.classList.remove('hidden');
+    } else {
+      preview.classList.add('hidden');
+    }
+  }
+  document.getElementById('heroImage')?.addEventListener('input', (e) => {
+    updateHeroPreview((e.target as HTMLInputElement).value);
+  });
+
+  // 关闭媒体 modal
+  document.getElementById('close-media-modal')?.addEventListener('click', () => {
+    document.getElementById('media-picker-modal')!.classList.add('hidden');
+  });
+  document.getElementById('media-picker-modal')?.addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) (e.currentTarget as HTMLElement).classList.add('hidden');
+  });
+  // ────────────────────────────────────────────────────────
   
   // 表单提交处理
   const form = document.querySelector('form[action="/api/admin/articles"]') as HTMLFormElement;
