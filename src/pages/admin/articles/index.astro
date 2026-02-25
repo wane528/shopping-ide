@@ -283,8 +283,9 @@ const errorMessage = Astro.url.searchParams.get('error');
 <script>
   // 删除确认
   document.querySelectorAll('[data-delete-article]').forEach((btn) => {
-    btn.addEventListener('click', async (e) => {
-      const id = (e.target as HTMLElement).getAttribute('data-delete-article');
+    btn.addEventListener('click', async () => {
+      const id = (btn as HTMLElement).getAttribute('data-delete-article');
+      if (!id) return;
       if (confirm('确定要删除这篇文章吗？此操作不可恢复。')) {
         try {
           const response = await fetch(`/api/admin/articles/${id}`, { method: 'DELETE' });
