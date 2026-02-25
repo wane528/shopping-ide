@@ -8,7 +8,7 @@ import { eq } from 'drizzle-orm';
 
 export const GET: APIRoute = async ({ site }) => {
   // 使用 Astro 的 site 配置，确保与 astro.config.mjs 一致
-  let siteUrl = site?.toString() || 'https://www.goodsetup.store';
+  let siteUrl = site?.toString() || 'https://puracatcare.help';
   siteUrl = siteUrl.replace(/\/+$/, ''); // 移除尾部斜杠
   
   const now = new Date().toISOString().split('T')[0];
@@ -76,7 +76,7 @@ ${allPages.map(page => `  <url>
   return new Response(sitemap, {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=300', // 5分钟缓存
+      'Cache-Control': 'no-cache, no-store, must-revalidate', // 发布即生效
     },
   });
 };

@@ -23,11 +23,19 @@ marked.setOptions({
   gfm: true,
 });
 
-// 自定义渲染器 - 为标题添加 id
+// 自定义渲染器 - 为标题添加 id，为表格添加滚动容器
 const renderer = new marked.Renderer();
 renderer.heading = ({ depth, text }) => {
   const slug = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   return `<h${depth} id="${slug}">${text}</h${depth}>`;
+};
+renderer.table = (token) => {
+  // 用 div 包裹表格，实现横向滚动
+  const header = token.header.map(cell => `<th>${cell.text}</th>`).join('');
+  const rows = token.rows.map(row => 
+    `<tr>${row.map(cell => `<td>${cell.text}</td>`).join('')}</tr>`
+  ).join('');
+  return `<div class="table-wrapper" style="overflow-x:auto;margin-bottom:1.5rem"><table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table></div>`;
 };
 marked.use({ renderer });
 
@@ -240,115 +248,168 @@ if (author?.expertise) {
 </BaseLayout>
 
 <style>
-  .prose :is(h2, h3, h4) {
+  :global(.prose :is(h2, h3, h4)) {
     scroll-margin-top: 6rem;
   }
   
-  .prose h2 {
-    id: attr(id);
+  :global(.prose) {
+    color: theme('colors.gray.700');
   }
   
-  .prose {
-    @apply text-gray-700 dark:text-gray-300;
+  :global(.dark .prose) {
+    color: theme('colors.gray.300');
   }
   
-  .prose h2 {
-    @apply text-2xl font-bold text-gray-900 dark:text-white mt-8 mb-4;
+  :global(.prose h2) {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: theme('colors.gray.900');
+    margin-top: 2rem;
+    margin-bottom: 1rem;
   }
   
-  .prose h3 {
-    @apply text-xl font-semibold text-gray-900 dark:text-white mt-6 mb-3;
+  :global(.dark .prose h2) {
+    color: theme('colors.white');
   }
   
-  .prose p {
-    @apply mb-4 leading-relaxed;
+  :global(.prose h3) {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: theme('colors.gray.900');
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
   }
   
-  .prose ul, .prose ol {
-    @apply mb-4 pl-6;
+  :global(.dark .prose h3) {
+    color: theme('colors.white');
   }
   
-  .prose li {
-    @apply mb-2;
+  :global(.prose p) {
+    margin-bottom: 1rem;
+    line-height: 1.75;
   }
   
-  .prose blockquote {
-    @apply border-l-4 border-primary-500 pl-4 italic text-gray-600 dark:text-gray-400 my-4;
+  :global(.prose ul, .prose ol) {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
   }
   
-  .prose strong {
-    @apply font-semibold text-gray-900 dark:text-white;
+  :global(.prose li) {
+    margin-bottom: 0.5rem;
   }
   
-  .prose a {
-    @apply text-primary-600 dark:text-primary-400 hover:underline;
+  :global(.prose blockquote) {
+    border-left: 4px solid theme('colors.primary.500');
+    padding-left: 1rem;
+    font-style: italic;
+    color: theme('colors.gray.600');
+    margin: 1rem 0;
   }
   
-  .prose code {
-    @apply bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-sm;
+  :global(.dark .prose blockquote) {
+    color: theme('colors.gray.400');
   }
   
-  .prose pre {
-    @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4;
+  :global(.prose strong) {
+    font-weight: 600;
+    color: theme('colors.gray.900');
   }
   
-  .prose pre code {
-    @apply bg-transparent p-0;
+  :global(.dark .prose strong) {
+    color: theme('colors.white');
   }
   
-  /* 表格样式 */
-  .prose table {
+  :global(.prose a) {
+    color: theme('colors.primary.600');
+    text-decoration: underline;
+  }
+  
+  :global(.dark .prose a) {
+    color: theme('colors.primary.400');
+  }
+  
+  :global(.prose code) {
+    background-color: theme('colors.gray.100');
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+  }
+  
+  :global(.dark .prose code) {
+    background-color: theme('colors.gray.800');
+  }
+  
+  :global(.prose pre) {
+    background-color: theme('colors.gray.900');
+    color: theme('colors.gray.100');
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  
+  :global(.prose pre code) {
+    background-color: transparent;
+    padding: 0;
+  }
+  
+  /* 表格样式 — 使用 :global 确保作用于 set:html 注入的内容 */
+  :global(.prose table) {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 1.5rem;
     font-size: 0.875rem;
-    display: block;
-    overflow-x: auto;
   }
   
-  .prose thead {
+  :global(.prose .table-wrapper) {
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+  }
+  
+  :global(.prose thead) {
     background-color: #f3f4f6;
   }
   
-  .dark .prose thead {
+  :global(.dark .prose thead) {
     background-color: #374151;
   }
   
-  .prose th {
+  :global(.prose th) {
     padding: 0.75rem 1rem;
     text-align: left;
     font-weight: 600;
     color: #111827;
     border-bottom: 2px solid #d1d5db;
+    white-space: nowrap;
   }
   
-  .dark .prose th {
+  :global(.dark .prose th) {
     color: #f9fafb;
     border-bottom-color: #4b5563;
   }
   
-  .prose td {
+  :global(.prose td) {
     padding: 0.75rem 1rem;
     border-bottom: 1px solid #e5e7eb;
   }
   
-  .dark .prose td {
+  :global(.dark .prose td) {
     border-bottom-color: #374151;
   }
   
-  .prose tbody tr:nth-child(even) {
+  :global(.prose tbody tr:nth-child(even)) {
     background-color: #f9fafb;
   }
   
-  .dark .prose tbody tr:nth-child(even) {
+  :global(.dark .prose tbody tr:nth-child(even)) {
     background-color: #1f2937;
   }
   
-  .prose tbody tr:hover {
+  :global(.prose tbody tr:hover) {
     background-color: #f3f4f6;
   }
   
-  .dark .prose tbody tr:hover {
+  :global(.dark .prose tbody tr:hover) {
     background-color: #374151;
   }
 </style>

@@ -14,10 +14,10 @@ const title = '编辑文章';
 
 // 分类列表
 const categories = [
-  { slug: 'guides', name: 'Guides' },
+  { slug: 'urinary-health', name: 'Urinary Health' },
+  { slug: 'kidney-disease', name: 'Kidney Disease' },
   { slug: 'reviews', name: 'Reviews' },
-  { slug: 'tips', name: 'Tips' },
-  { slug: 'resources', name: 'Resources' },
+  { slug: 'care-tips', name: 'Care Tips' },
 ];
 
 // 获取作者列表
@@ -135,9 +135,19 @@ const errorMessage = Astro.url.searchParams.get('error');
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
               </svg>
             </button>
-            <button type="button" class="editor-btn" data-action="link" title="链接">
+            <button type="button" class="editor-btn" data-action="ol" title="有序列表">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
+              </svg>
+            </button>
+            <button type="button" class="editor-btn" data-action="link" title="外部链接">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+              </svg>
+            </button>
+            <button type="button" class="editor-btn" data-action="internal-link" title="内部链接（站内文章）">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
               </svg>
             </button>
             <button type="button" class="editor-btn" data-action="code" title="代码块">
@@ -295,6 +305,24 @@ const errorMessage = Astro.url.searchParams.get('error');
       )}
     </div>
   </form>
+
+  <!-- 内部链接选择器 Modal -->
+  <div id="internal-link-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+        <h3 class="font-semibold text-gray-900 dark:text-white">Insert Internal Link</h3>
+        <button id="close-link-modal" type="button" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="p-4">
+        <input id="link-search" type="text" placeholder="Search articles by title..." class="admin-input mb-3" />
+        <div id="link-article-list" class="max-h-64 overflow-y-auto space-y-0.5"></div>
+      </div>
+    </div>
+  </div>
 </AdminLayout>
 
 <style>
@@ -344,13 +372,20 @@ const errorMessage = Astro.url.searchParams.get('error');
       const end = contentArea.selectionEnd;
       const selected = contentArea.value.substring(start, end);
       
+      if (action === 'internal-link') {
+        openInternalLinkPicker(start, end, selected);
+        return;
+      }
+      
       const actions: Record<string, [string, string]> = {
         bold: ['**', '**'],
         italic: ['*', '*'],
         h2: ['## ', ''],
         h3: ['### ', ''],
         ul: ['- ', ''],
+        ol: ['1. ', ''],
         link: ['[', '](url)'],
+        image: ['![alt](', ')'],
         code: ['```\n', '\n```'],
       };
       
@@ -363,5 +398,72 @@ const errorMessage = Astro.url.searchParams.get('error');
         contentArea.focus();
       }
     });
+  });
+
+  // 内部链接选择器
+  let _linkInsertStart = 0;
+  let _linkInsertEnd = 0;
+  let _linkInsertSelected = '';
+
+  function openInternalLinkPicker(start: number, end: number, selected: string) {
+    _linkInsertStart = start;
+    _linkInsertEnd = end;
+    _linkInsertSelected = selected;
+    const modal = document.getElementById('internal-link-modal')!;
+    modal.classList.remove('hidden');
+    const searchInput = document.getElementById('link-search') as HTMLInputElement;
+    searchInput.value = '';
+    searchInput.focus();
+    loadArticles('');
+  }
+
+  async function loadArticles(query: string) {
+    const list = document.getElementById('link-article-list')!;
+    list.innerHTML = '<p class="text-sm text-gray-400 p-2">Loading...</p>';
+    try {
+      const res = await fetch(`/api/articles?q=${encodeURIComponent(query)}&limit=20`);
+      const data = await res.json();
+      const articles = data.articles || data || [];
+      if (articles.length === 0) {
+        list.innerHTML = '<p class="text-sm text-gray-400 p-2">No articles found.</p>';
+        return;
+      }
+      list.innerHTML = articles.map((a: any) => `
+        <button type="button" class="link-article-item w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-sm" data-slug="${a.slug}" data-title="${a.title}">
+          <span class="font-medium text-gray-900 dark:text-white">${a.title}</span>
+          <span class="text-xs text-gray-400 ml-2">/${a.slug}</span>
+        </button>
+      `).join('');
+      list.querySelectorAll('.link-article-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const slug = (item as HTMLElement).dataset.slug!;
+          const title = (item as HTMLElement).dataset.title!;
+          const linkText = _linkInsertSelected || title;
+          const markdown = `[${linkText}](/${slug})`;
+          contentArea.value =
+            contentArea.value.substring(0, _linkInsertStart) +
+            markdown +
+            contentArea.value.substring(_linkInsertEnd);
+          contentArea.focus();
+          document.getElementById('internal-link-modal')!.classList.add('hidden');
+        });
+      });
+    } catch {
+      list.innerHTML = '<p class="text-sm text-red-400 p-2">Failed to load articles.</p>';
+    }
+  }
+
+  document.getElementById('link-search')?.addEventListener('input', (e) => {
+    loadArticles((e.target as HTMLInputElement).value);
+  });
+
+  document.getElementById('close-link-modal')?.addEventListener('click', () => {
+    document.getElementById('internal-link-modal')!.classList.add('hidden');
+  });
+
+  document.getElementById('internal-link-modal')?.addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) {
+      (e.currentTarget as HTMLElement).classList.add('hidden');
+    }
   });
 </script>
