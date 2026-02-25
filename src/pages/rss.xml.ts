@@ -32,12 +32,12 @@ export const GET: APIRoute = async (context) => {
   }
 
   return rss({
-    title: 'KittyKidney',
-    description: 'Evidence-based guides on feline urinary and kidney health for cat owners.',
+    title: 'PuraCatCare',
+    description: 'Pure science for cat health — evidence-based guides on feline urinary and kidney health.',
     site,
     items: feedItems,
     customData: `<language>en-us</language>
-<copyright>Copyright ${new Date().getFullYear()} KittyKidney</copyright>
-<webMaster>hello@kittykidney.com</webMaster>`,
+<copyright>Copyright ${new Date().getFullYear()} PuraCatCare</copyright>
+<webMaster>hello@puracatcare.help</webMaster>`,
   });
 };

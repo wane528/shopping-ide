@@ -29,15 +29,16 @@ export const GET: APIRoute = async ({ site }) => {
     console.error('Error fetching articles for llms.txt:', error);
   }
   
-  const llmsTxt = `# KittyKidney
+  const llmsTxt = `# PuraCatCare
 
-> An evidence-based resource for feline urinary and kidney health.
+> Pure science for cat health — evidence-based guides on feline urinary and kidney health.
 
 ## Website
 
 - URL: ${siteUrl}
 - Language: English
 - Content-Type: Educational, Veterinary Health
+- Slogan: Pure Science for Cat Health
 
 ## Content Overview
 
@@ -61,7 +62,7 @@ ${articleList}
 
 ## Contact
 
-- Email: hello@kittykidney.com
+- Email: hello@puracatcare.help
 `;
 
   return new Response(llmsTxt, {
