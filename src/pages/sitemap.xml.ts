@@ -6,10 +6,11 @@ import { db } from '@lib/db';
 import { articles } from '@lib/db/schema';
 import { eq } from 'drizzle-orm';
 
+export const prerender = false;
+
 export const GET: APIRoute = async ({ site }) => {
-  // 使用 Astro 的 site 配置，确保与 astro.config.mjs 一致
-  let siteUrl = site?.toString() || 'https://puracatcare.help';
-  siteUrl = siteUrl.replace(/\/+$/, ''); // 移除尾部斜杠
+  // 强制使用正式域名，避免 Vercel 内部 URL
+  const siteUrl = 'https://www.puracatcare.help';
   
   const now = new Date().toISOString().split('T')[0];
   
