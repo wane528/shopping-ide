@@ -343,6 +343,7 @@ const errorMessage = Astro.url.searchParams.get('error');
       const response = await fetch('/api/admin/articles/import', {
         method: 'POST',
         body: formData,
+        credentials: 'include',
       });
       
       const result = await response.json();
