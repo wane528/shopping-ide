@@ -6,7 +6,7 @@ import { db } from '@lib/db';
 import { articles } from '@lib/db/schema';
 import { eq } from 'drizzle-orm';
 
-export const prerender = false;
+export const prerender = true;
 
 export const GET: APIRoute = async ({ site }) => {
   // 强制使用正式域名，避免 Vercel 内部 URL
