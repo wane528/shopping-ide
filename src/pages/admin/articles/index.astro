@@ -333,88 +333,74 @@ const errorMessage = Astro.url.searchParams.get('error');
     }
     
     if (!confirm(`确定要导入 ${file.name} 吗？这将创建新文章。`)) {
+      importFile.value = '';
       return;
     }
     
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    try {
-      // Read file content and send as JSON to avoid multipart size issues
-      const fileText = await file.text();
-
+    // Use FileReader to reliably read file content
+    const reader = new FileReader();
+    reader.onload = async function() {
+      const fileText = reader.result as string;
+      
       if (!fileText || fileText.trim() === '') {
         alert('文件内容为空，请检查文件');
+        importFile.value = '';
         return;
       }
 
-      let body: string;
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      try {
+        let response: Response;
 
-      if (file.name.endsWith('.json')) {
-        // Validate and re-serialize to ensure clean JSON
-        const parsed = JSON.parse(fileText);
-        body = JSON.stringify(parsed);
-      } else {
-        // CSV: fall back to formData
-        const fd = new FormData();
-        fd.append('file', file);
-        const response = await fetch('/api/admin/articles/import', {
-          method: 'POST',
-          body: fd,
-          credentials: 'include',
-        });
+        if (file.name.endsWith('.json')) {
+          const parsed = JSON.parse(fileText);
+          response = await fetch('/api/admin/articles/import', {
+            method: 'POST',
+            body: JSON.stringify(parsed),
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+          });
+        } else {
+          const fd = new FormData();
+          fd.append('file', file);
+          response = await fetch('/api/admin/articles/import', {
+            method: 'POST',
+            body: fd,
+            credentials: 'include',
+          });
+        }
+
         const result = await response.json();
+
         if (response.ok) {
-          alert(`导入完成！\n成功: ${result.success} 篇\n失败: ${result.failed} 篇`);
+          let message = `导入完成！\n成功: ${result.success} 篇\n失败: ${result.failed} 篇`;
+          if (result.created?.authors?.length > 0) {
+            message += `\n\n新建作者: ${result.created.authors.join(', ')}`;
+          }
+          if (result.created?.categories?.length > 0) {
+            message += `\n新建分类: ${result.created.categories.join(', ')}`;
+          }
+          if (result.created?.tags?.length > 0) {
+            message += `\n新建标签: ${result.created.tags.join(', ')}`;
+          }
+          if (result.errors?.length > 0) {
+            message += `\n\n错误:\n${result.errors.slice(0, 5).join('\n')}`;
+          }
+          alert(message);
           window.location.reload();
         } else {
-          alert('导入失败: ' + (result.error || '未知错误'));
+          alert('导入失败: ' + (result.error || result.message || '未知错误'));
         }
-        return;
+      } catch (error) {
+        console.error('Import error:', error);
+        alert('导入失败: ' + (error instanceof Error ? error.message : '请重试'));
       }
-
-      const response = await fetch('/api/admin/articles/import', {
-        method: 'POST',
-        body,
-        headers,
-        credentials: 'include',
-      });
-      
-      const result = await response.json();
-      
-      if (response.ok) {
-        let message = `导入完成！\n成功: ${result.success} 篇\n失败: ${result.failed} 篇`;
-        
-        if (result.created.authors.length > 0) {
-          message += `\n\n新建作者: ${result.created.authors.join(', ')}`;
-        }
-        if (result.created.categories.length > 0) {
-          message += `\n新建分类: ${result.created.categories.join(', ')}`;
-        }
-        if (result.created.tags.length > 0) {
-          message += `\n新建标签: ${result.created.tags.join(', ')}`;
-        }
-        
-        if (result.errors.length > 0) {
-          message += `\n\n错误:\n${result.errors.slice(0, 5).join('\n')}`;
-          if (result.errors.length > 5) {
-            message += `\n... 还有 ${result.errors.length - 5} 个错误`;
-          }
-        }
-        
-        alert(message);
-        window.location.reload();
-      } else {
-        alert('导入失败: ' + (result.error || '未知错误'));
-      }
-    } catch (error) {
-      alert('导入失败，请重试。');
-      console.error(error);
-    }
-    
-    // 重置文件输入
-    importFile.value = '';
+      importFile.value = '';
+    };
+    reader.onerror = function() {
+      alert('读取文件失败，请重试');
+      importFile.value = '';
+    };
+    reader.readAsText(file, 'UTF-8');
   });
 
   // 快速编辑发布时间
