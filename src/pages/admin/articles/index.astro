@@ -341,6 +341,7 @@ const errorMessage = Astro.url.searchParams.get('error');
     const reader = new FileReader();
     reader.onload = async function() {
       const fileText = reader.result as string;
+      alert(`DEBUG: FileReader loaded, length=${fileText?.length || 0}, first50=${fileText?.substring(0, 50)}`);
       
       if (!fileText || fileText.trim() === '') {
         alert('文件内容为空，请检查文件');
