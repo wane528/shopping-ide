@@ -93,39 +93,51 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   }
 
   try {
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
-    
-    if (!file) {
-      return new Response(
-        JSON.stringify({ error: 'No file provided' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const content = await file.text();
     let importData: any[];
+    const contentType = request.headers.get('content-type') || '';
 
-    // 解析文件
-    if (file.name.endsWith('.json')) {
-      importData = JSON.parse(content);
-    } else if (file.name.endsWith('.csv')) {
-      // 简单的 CSV 解析
-      const lines = content.split('\n');
-      const headers = lines[0].split(',');
-      importData = lines.slice(1).map(line => {
-        const values = line.split(',');
-        const obj: any = {};
-        headers.forEach((header, i) => {
-          obj[header.trim()] = values[i]?.trim().replace(/^"|"$/g, '');
-        });
-        return obj;
-      });
+    if (contentType.includes('application/json')) {
+      // Direct JSON body
+      importData = await request.json();
     } else {
-      return new Response(
-        JSON.stringify({ error: 'Unsupported file format' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      // multipart/form-data file upload
+      const formData = await request.formData();
+      const file = formData.get('file') as File;
+      
+      if (!file) {
+        return new Response(
+          JSON.stringify({ error: 'No file provided' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const content = await file.text();
+      if (!content || content.trim() === '') {
+        return new Response(
+          JSON.stringify({ error: 'File is empty' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (file.name.endsWith('.json')) {
+        importData = JSON.parse(content);
+      } else if (file.name.endsWith('.csv')) {
+        const lines = content.split('\n');
+        const headers = lines[0].split(',');
+        importData = lines.slice(1).filter(l => l.trim()).map(line => {
+          const values = line.split(',');
+          const obj: any = {};
+          headers.forEach((header, i) => {
+            obj[header.trim()] = values[i]?.trim().replace(/^"|"$/g, '');
+          });
+          return obj;
+        });
+      } else {
+        return new Response(
+          JSON.stringify({ error: 'Unsupported file format' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     const results = {

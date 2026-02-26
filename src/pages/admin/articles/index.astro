@@ -340,9 +340,38 @@ const errorMessage = Astro.url.searchParams.get('error');
     formData.append('file', file);
     
     try {
+      // Read file content and send as JSON to avoid multipart size issues
+      const fileText = await file.text();
+      let body: string;
+      let headers: Record<string, string> = { 'Content-Type': 'application/json' };
+
+      if (file.name.endsWith('.json')) {
+        // Validate and re-serialize to ensure clean JSON
+        const parsed = JSON.parse(fileText);
+        body = JSON.stringify(parsed);
+      } else {
+        // CSV: fall back to formData
+        const fd = new FormData();
+        fd.append('file', file);
+        const response = await fetch('/api/admin/articles/import', {
+          method: 'POST',
+          body: fd,
+          credentials: 'include',
+        });
+        const result = await response.json();
+        if (response.ok) {
+          alert(`导入完成！\n成功: ${result.success} 篇\n失败: ${result.failed} 篇`);
+          window.location.reload();
+        } else {
+          alert('导入失败: ' + (result.error || '未知错误'));
+        }
+        return;
+      }
+
       const response = await fetch('/api/admin/articles/import', {
         method: 'POST',
-        body: formData,
+        body,
+        headers,
         credentials: 'include',
       });
       
