@@ -8,6 +8,7 @@ import RelatedArticles from '@components/article/RelatedArticles.astro';
 import SidebarAuthor from '@components/article/SidebarAuthor.astro';
 import SidebarProducts from '@components/article/SidebarProducts.astro';
 import SidebarRelated from '@components/article/SidebarRelated.astro';
+import ShareButtons from '@components/article/ShareButtons.astro';
 import Newsletter from '@components/common/Newsletter.astro';
 import { generateArticleSchema, generateBreadcrumbSchema, generateFAQSchema } from '@lib/seo';
 import { marked } from 'marked';
@@ -121,7 +122,7 @@ if (author?.expertise) {
 }
 ---
 
-<BaseLayout title={title} description={description} type="article">
+<BaseLayout title={title} description={description} type="article" image={currentArticle.heroImage || undefined}>
   <article class="py-8 md:py-12">
     <div class="container-content">
       <!-- Breadcrumb -->
@@ -164,6 +165,8 @@ if (author?.expertise) {
           </time>
           <span class="text-gray-300 dark:text-gray-600">·</span>
           <span>{currentArticle.readingTime || 5} min read</span>
+          <span class="text-gray-300 dark:text-gray-600">·</span>
+          <ShareButtons title={currentArticle.title} slug={currentArticle.slug} description={currentArticle.description} />
         </div>
 
         <!-- Hero Image -->

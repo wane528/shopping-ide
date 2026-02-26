@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /api/admin/
 
 Sitemap: https://www.puracatcare.help/sitemap.xml
