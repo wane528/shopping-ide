@@ -126,6 +126,14 @@ const errorMessage = Astro.url.searchParams.get('error');
         </div>
       </div>
       
+      <!-- 生成 Sitemap 按钮 -->
+      <button id="sitemap-btn" class="admin-btn admin-btn-secondary" title="重新生成 Sitemap">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Sitemap
+      </button>
+
       <a href="/admin/articles/new" class="admin-btn admin-btn-primary">
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -539,5 +547,25 @@ const errorMessage = Astro.url.searchParams.get('error');
         }
       });
     });
+  });
+
+  // 生成 Sitemap
+  const sitemapBtn = document.getElementById('sitemap-btn');
+  sitemapBtn?.addEventListener('click', async () => {
+    sitemapBtn.textContent = '生成中...';
+    (sitemapBtn as HTMLButtonElement).disabled = true;
+    try {
+      const res = await fetch('/api/sitemap/generate', { method: 'POST' });
+      const result = await res.json();
+      if (result.success) {
+        alert(`Sitemap 生成成功！\n包含 ${result.urlCount} 个 URL\n地址: ${result.url}`);
+      } else {
+        alert('生成失败: ' + (result.error || '未知错误'));
+      }
+    } catch (err) {
+      alert('生成失败，请重试');
+    }
+    sitemapBtn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Sitemap';
+    (sitemapBtn as HTMLButtonElement).disabled = false;
   });
 </script>

@@ -5,6 +5,7 @@ import type { APIRoute } from 'astro';
 import { db } from '@lib/db';
 import { articles, articleTags } from '@lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { generateAndUploadSitemap } from '@lib/sitemap';
 
 export const prerender = false;
 
@@ -114,6 +115,11 @@ export const POST: APIRoute = async ({ request, params, redirect }) => {
       })
       .where(eq(articles.id, articleId));
     
+    // 文章状态变更时自动重新生成 sitemap
+    if (status === 'published' || current[0].status === 'published') {
+      generateAndUploadSitemap().catch(err => console.error('[Sitemap] Auto-generate failed:', err));
+    }
+
     return redirect('/admin/articles?success=updated');
   } catch (error) {
     console.error('Error updating article:', error);
@@ -138,6 +144,9 @@ export const DELETE: APIRoute = async ({ params, cookies }) => {
     await db.delete(articleTags).where(eq(articleTags.articleId, articleId));
     await db.delete(articles).where(eq(articles.id, articleId));
     
+    // 重新生成 sitemap
+    generateAndUploadSitemap().catch(err => console.error('[Sitemap] Auto-generate failed:', err));
+
     return new Response(
       JSON.stringify({ success: true }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
