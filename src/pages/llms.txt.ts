@@ -63,7 +63,7 @@ ${articleList || 'No articles published yet.'}
 
 ## Contact
 
-- Email: hello@puracatcare.help
+- Email: puracatcare@hotmail.com
 `;
 
   return new Response(llmsTxt, {

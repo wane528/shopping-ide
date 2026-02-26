@@ -38,6 +38,6 @@ export const GET: APIRoute = async (context) => {
     items: feedItems,
     customData: `<language>en-us</language>
 <copyright>Copyright ${new Date().getFullYear()} PuraCatCare</copyright>
-<webMaster>hello@puracatcare.help</webMaster>`,
+<webMaster>puracatcare@hotmail.com</webMaster>`,
   });
 };

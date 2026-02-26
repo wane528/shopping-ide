@@ -184,7 +184,7 @@ export function generateOrganizationSchema() {
     "logo": `${SITE_URL}/images/logo.png`,
     "contactPoint": {
       "@type": "ContactPoint",
-      "email": "hello@puracatcare.help",
+      "email": "puracatcare@hotmail.com",
       "contactType": "customer service"
     }
   };
