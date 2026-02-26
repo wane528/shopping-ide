@@ -1,6 +1,12 @@
 {
   "buildCommand": "npm run build",
   "framework": null,
+  "rewrites": [
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://hyqfwrozcxrenzaoeyrz.supabase.co/storage/v1/object/public/media/sitemap.xml"
+    }
+  ],
   "crons": [
     {
       "path": "/api/admin/articles/publish-scheduled",

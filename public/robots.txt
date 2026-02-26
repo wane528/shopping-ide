@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://hyqfwrozcxrenzaoeyrz.supabase.co/storage/v1/object/public/media/sitemap.xml
+Sitemap: https://www.puracatcare.help/sitemap.xml
