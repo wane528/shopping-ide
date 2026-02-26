@@ -332,7 +332,13 @@ const errorMessage = Astro.url.searchParams.get('error');
       return;
     }
     
-    if (!confirm(`确定要导入 ${file.name} 吗？这将创建新文章。`)) {
+    if (!confirm(`确定要导入 ${file.name} 吗？(文件大小: ${file.size} bytes) 这将创建新文章。`)) {
+      importFile.value = '';
+      return;
+    }
+
+    if (file.size === 0) {
+      alert(`文件 ${file.name} 大小为 0 字节，请确认文件已保存且有内容`);
       importFile.value = '';
       return;
     }
