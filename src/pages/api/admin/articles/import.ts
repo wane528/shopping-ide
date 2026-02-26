@@ -1,6 +1,4 @@
 // src/pages/api/admin/articles/import.ts
-// 导入文章数据（支持自动创建分类/标签/作者）
-
 import type { APIRoute } from 'astro';
 import { db } from '@lib/db';
 import { articles, authors, categories, tags, articleTags } from '@lib/db/schema';
@@ -12,7 +10,6 @@ const checkAuth = (cookies: any) => {
   return cookies.get('admin_auth')?.value === 'true';
 };
 
-// 生成 slug
 function generateSlug(text: string): string {
   return text
     .toLowerCase()
@@ -22,65 +19,37 @@ function generateSlug(text: string): string {
     .trim();
 }
 
-// 获取或创建作者
-async function getOrCreateAuthor(authorName: string | null, authorSlug: string | null) {
-  if (!authorName) return null;
-  
+async function getOrCreateAuthor(authorName: string, authorSlug: string | null) {
   const slug = authorSlug || generateSlug(authorName);
-  
-  // 检查作者是否存在
   const existing = await db.select().from(authors).where(eq(authors.slug, slug));
-  if (existing.length > 0) {
-    return existing[0].id;
-  }
-  
-  // 创建新作者
+  if (existing.length > 0) return existing[0].id;
   const result = await db.insert(authors).values({
     name: authorName,
     slug,
-    bio: `${authorName} 的个人简介`,
+    bio: `${authorName} bio`,
     createdAt: new Date().toISOString(),
   }).returning();
-  
   return result[0].id;
 }
 
-// 获取或创建分类
 async function getOrCreateCategory(categorySlug: string, categoryName?: string) {
-  // 检查分类是否存在
   const existing = await db.select().from(categories).where(eq(categories.slug, categorySlug));
-  if (existing.length > 0) {
-    return categorySlug;
-  }
-  
-  // 创建新分类
+  if (existing.length > 0) return categorySlug;
   await db.insert(categories).values({
     name: categoryName || categorySlug,
     slug: categorySlug,
-    description: `${categoryName || categorySlug} 分类`,
+    description: `${categoryName || categorySlug} category`,
     color: 'blue',
     order: 0,
   });
-  
   return categorySlug;
 }
 
-// 获取或创建标签
 async function getOrCreateTag(tagName: string): Promise<number> {
   const slug = generateSlug(tagName);
-  
-  // 检查标签是否存在
   const existing = await db.select().from(tags).where(eq(tags.slug, slug));
-  if (existing.length > 0) {
-    return existing[0].id;
-  }
-  
-  // 创建新标签
-  const result = await db.insert(tags).values({
-    name: tagName,
-    slug,
-  }).returning();
-  
+  if (existing.length > 0) return existing[0].id;
+  const result = await db.insert(tags).values({ name: tagName, slug }).returning();
   return result[0].id;
 }
 
@@ -97,46 +66,37 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const contentType = request.headers.get('content-type') || '';
 
     if (contentType.includes('application/json')) {
-      // Direct JSON body
       importData = await request.json();
     } else {
-      // multipart/form-data file upload
+      // multipart form-data
       const formData = await request.formData();
       const file = formData.get('file') as File;
-      
       if (!file) {
-        return new Response(
-          JSON.stringify({ error: 'No file provided' }),
-          { status: 400, headers: { 'Content-Type': 'application/json' } }
-        );
+        return new Response(JSON.stringify({ error: 'No file provided' }), {
+          status: 400, headers: { 'Content-Type': 'application/json' },
+        });
       }
-
-      const content = await file.text();
-      if (!content || content.trim() === '') {
-        return new Response(
-          JSON.stringify({ error: 'File is empty' }),
-          { status: 400, headers: { 'Content-Type': 'application/json' } }
-        );
+      const text = await file.text();
+      if (!text || text.trim() === '') {
+        return new Response(JSON.stringify({ error: 'File is empty' }), {
+          status: 400, headers: { 'Content-Type': 'application/json' },
+        });
       }
-
       if (file.name.endsWith('.json')) {
-        importData = JSON.parse(content);
+        importData = JSON.parse(text);
       } else if (file.name.endsWith('.csv')) {
-        const lines = content.split('\n');
+        const lines = text.split('\n');
         const headers = lines[0].split(',');
         importData = lines.slice(1).filter(l => l.trim()).map(line => {
           const values = line.split(',');
           const obj: any = {};
-          headers.forEach((header, i) => {
-            obj[header.trim()] = values[i]?.trim().replace(/^"|"$/g, '');
-          });
+          headers.forEach((h, i) => { obj[h.trim()] = values[i]?.trim().replace(/^"|"$/g, ''); });
           return obj;
         });
       } else {
-        return new Response(
-          JSON.stringify({ error: 'Unsupported file format' }),
-          { status: 400, headers: { 'Content-Type': 'application/json' } }
-        );
+        return new Response(JSON.stringify({ error: 'Unsupported file format' }), {
+          status: 400, headers: { 'Content-Type': 'application/json' },
+        });
       }
     }
 
@@ -144,53 +104,35 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       success: 0,
       failed: 0,
       errors: [] as string[],
-      created: {
-        authors: [] as string[],
-        categories: [] as string[],
-        tags: [] as string[],
-      },
+      created: { authors: [] as string[], categories: [] as string[], tags: [] as string[] },
     };
 
-    // 导入每篇文章
     for (const item of importData) {
       try {
-        // 处理作者
         let authorId = null;
         if (item.authorName || item.author_name) {
-          const authorName = item.authorName || item.author_name;
-          const authorSlug = item.authorSlug || item.author_slug;
-          authorId = await getOrCreateAuthor(authorName, authorSlug);
-          if (!results.created.authors.includes(authorName)) {
-            results.created.authors.push(authorName);
-          }
+          const name = item.authorName || item.author_name;
+          authorId = await getOrCreateAuthor(name, item.authorSlug || item.author_slug || null);
+          if (!results.created.authors.includes(name)) results.created.authors.push(name);
         }
 
-        // 处理分类
         const categorySlug = item.category || 'guides';
-        const categoryName = item.categoryName || item.category_name;
-        await getOrCreateCategory(categorySlug, categoryName);
-        if (!results.created.categories.includes(categorySlug)) {
-          results.created.categories.push(categorySlug);
-        }
+        await getOrCreateCategory(categorySlug, item.categoryName || item.category_name);
+        if (!results.created.categories.includes(categorySlug)) results.created.categories.push(categorySlug);
 
-        // 检查 slug 是否已存在
         const slug = item.slug || generateSlug(item.title || item.Title);
         const existing = await db.select().from(articles).where(eq(articles.slug, slug));
-        
         if (existing.length > 0) {
-          results.errors.push(`文章 "${item.title || item.Title}" 的 slug "${slug}" 已存在，跳过`);
+          results.errors.push(`Slug "${slug}" already exists, skipped`);
           results.failed++;
           continue;
         }
 
-        // 计算阅读时长
         const content = item.content || item.Content || '';
         const wordCount = content.split(/\s+/).length;
         const readingTime = Math.max(1, Math.ceil(wordCount / 200));
-
         const now = new Date().toISOString();
 
-        // 插入文章
         const insertResult = await db.insert(articles).values({
           title: item.title || item.Title,
           slug,
@@ -216,35 +158,28 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
         const articleId = insertResult[0].id;
 
-        // 处理标签
         const tagNames = item.tags || item.Tags || [];
-        const tagArray = typeof tagNames === 'string' 
+        const tagArray = typeof tagNames === 'string'
           ? tagNames.split(';').map((t: string) => t.trim()).filter(Boolean)
           : tagNames;
 
         for (const tagName of tagArray) {
           const tagId = await getOrCreateTag(tagName);
-          await db.insert(articleTags).values({
-            articleId,
-            tagId,
-          });
-          if (!results.created.tags.includes(tagName)) {
-            results.created.tags.push(tagName);
-          }
+          await db.insert(articleTags).values({ articleId, tagId });
+          if (!results.created.tags.includes(tagName)) results.created.tags.push(tagName);
         }
 
         results.success++;
       } catch (error) {
         console.error('Import item error:', error);
         results.failed++;
-        results.errors.push(`导入失败: ${item.title || 'Unknown'} - ${error}`);
+        results.errors.push(`Failed: ${item.title || 'Unknown'} - ${error}`);
       }
     }
 
-    return new Response(
-      JSON.stringify(results),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify(results), {
+      status: 200, headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     console.error('Import error:', error);
     return new Response(

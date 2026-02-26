@@ -342,8 +342,14 @@ const errorMessage = Astro.url.searchParams.get('error');
     try {
       // Read file content and send as JSON to avoid multipart size issues
       const fileText = await file.text();
+
+      if (!fileText || fileText.trim() === '') {
+        alert('文件内容为空，请检查文件');
+        return;
+      }
+
       let body: string;
-      let headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
 
       if (file.name.endsWith('.json')) {
         // Validate and re-serialize to ensure clean JSON
