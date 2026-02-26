@@ -9,8 +9,8 @@ import { eq } from 'drizzle-orm';
 export const prerender = false;
 
 export const GET: APIRoute = async ({ site }) => {
-  // 强制使用正式域名，避免 Vercel 内部 URL
-  const siteUrl = 'https://www.puracatcare.help';
+  // 使用环境变量，与 astro.config.mjs 保持一致
+  const siteUrl = (import.meta.env.SITE_URL || process.env.SITE_URL || 'https://www.puracatcare.help').replace(/\/+$/, '');
   
   const now = new Date().toISOString().split('T')[0];
   
