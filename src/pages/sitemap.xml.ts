@@ -6,7 +6,7 @@ import { db } from '@lib/db';
 import { articles } from '@lib/db/schema';
 import { eq } from 'drizzle-orm';
 
-export const prerender = true;
+export const prerender = false;
 
 export const GET: APIRoute = async ({ site }) => {
   // 强制使用正式域名，避免 Vercel 内部 URL
@@ -77,7 +77,7 @@ ${allPages.map(page => `  <url>
   return new Response(sitemap, {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'no-cache, no-store, must-revalidate', // 发布即生效
+      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
     },
   });
 };
