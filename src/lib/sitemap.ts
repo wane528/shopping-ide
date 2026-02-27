@@ -14,6 +14,7 @@ export async function generateAndUploadSitemap(): Promise<{ success: boolean; ur
 
     const staticPages = [
       { loc: '/', changefreq: 'daily', priority: 1.0, lastmod: now },
+      { loc: '/articles', changefreq: 'daily', priority: 0.9, lastmod: now },
       { loc: '/about', changefreq: 'monthly', priority: 0.5, lastmod: now },
       { loc: '/category/urinary-health', changefreq: 'daily', priority: 0.8, lastmod: now },
       { loc: '/category/kidney-disease', changefreq: 'daily', priority: 0.8, lastmod: now },
