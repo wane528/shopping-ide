@@ -46,6 +46,12 @@ if (!slug) {
   return Astro.redirect('/404');
 }
 
+// 保留路由不走文章逻辑，交给对应页面处理
+const reservedSlugs = ['articles', 'about', 'privacy', 'terms', 'admin', 'api', 'category'];
+if (reservedSlugs.includes(slug)) {
+  return Astro.redirect(`/${slug}`);
+}
+
 const result = await db.select().from(articles).where(eq(articles.slug, slug));
 const currentArticle = result[0];
 
