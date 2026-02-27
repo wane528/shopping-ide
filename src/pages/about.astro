@@ -4,39 +4,10 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import Breadcrumb from '@components/common/Breadcrumb.astro';
 import { generateOrganizationSchema } from '@lib/seo';
 
-const title = 'About';
-const description = 'Learn about PuraCatCare — our mission to help cat owners understand and manage feline urinary and kidney health with pure, science-backed information.';
+export const prerender = true;
 
-const values = [
-  {
-    title: 'Vet-Informed Content',
-    description: 'Our articles are researched with veterinary guidance and reference peer-reviewed studies whenever possible.',
-    icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-    </svg>`,
-  },
-  {
-    title: 'Cat Owner First',
-    description: 'We write for worried cat parents, not search engines. Clear, actionable, and compassionate content.',
-    icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-    </svg>`,
-  },
-  {
-    title: 'Honest Product Reviews',
-    description: 'Unbiased reviews of prescription diets, supplements, and hydration products. We disclose all affiliate relationships.',
-    icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-    </svg>`,
-  },
-  {
-    title: 'Always Up to Date',
-    description: 'We continuously update our guides to reflect the latest veterinary research and product availability.',
-    icon: `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-    </svg>`,
-  },
-];
+const title = 'About';
+const description = 'Learn about PuraCatCare — born from a love for cats and a belief that every cat parent deserves clear, trustworthy health information.';
 
 const breadcrumbs = [
   { label: 'Home', href: '/' },
@@ -54,72 +25,106 @@ const breadcrumbs = [
           About PuraCatCare
         </h1>
         <p class="text-body-l text-gray-600 dark:text-gray-400 max-w-3xl">
-          We help cat owners understand, prevent, and manage feline urinary tract problems and kidney disease — with clear, evidence-based information you can trust. Pure science for cat health.
+          Because every purr matters.
         </p>
       </header>
-      
+
+      <!-- Our Story -->
       <section class="mb-16">
         <div class="card bg-gray-50/50 dark:bg-gray-800/50 border-0 p-8 md:p-10">
           <div class="max-w-3xl">
-            <h2 class="text-h2 text-gray-900 dark:text-white mb-4">Our Mission</h2>
+            <h2 class="text-h2 text-gray-900 dark:text-white mb-4">Our Story</h2>
             <p class="text-body-l text-gray-600 dark:text-gray-400 mb-6">
-              Urinary and kidney problems are among the most common — and most stressful — health issues cat owners face. We created PuraCatCare to be the resource we wished existed: a single, trustworthy place for understanding symptoms, treatment options, dietary management, and product recommendations.
+              PuraCatCare started the way many things do — with a scared cat parent and a late-night Google search.
+            </p>
+            <p class="text-body-s text-gray-500 dark:text-gray-400 mb-4">
+              When our founder's cat was diagnosed with urinary problems, the internet felt like a maze of confusing medical jargon, outdated forum posts, and product pages disguised as advice. Finding clear, honest, science-backed answers shouldn't be that hard — especially when your little one is hurting.
             </p>
             <p class="text-body-s text-gray-500 dark:text-gray-400">
-              Every article is written with care, reviewed for accuracy, and designed to help you have better conversations with your veterinarian. We are not a substitute for professional veterinary advice — we're a companion to it.
+              So we built the resource we wished we'd had: a warm, trustworthy place where cat parents can understand what's happening, learn what to do, and feel a little less alone in the process. No panic. No jargon. Just clear guidance, written with care.
             </p>
           </div>
         </div>
       </section>
       
+      <!-- What We Believe -->
       <section class="mb-16">
-        <h2 class="text-h2 text-gray-900 dark:text-white mb-8">What We Stand For</h2>
+        <h2 class="text-h2 text-gray-900 dark:text-white mb-8">What We Believe</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {values.map((value) => (
-            <div class="card group">
-              <div class="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 mb-4">
-                <Fragment set:html={value.icon} />
-              </div>
-              <h3 class="font-semibold text-gray-900 dark:text-white mb-2">{value.title}</h3>
-              <p class="text-body-s text-gray-500 dark:text-gray-400">{value.description}</p>
+          <div class="card group">
+            <div class="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 mb-4">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+              </svg>
             </div>
-          ))}
+            <h3 class="font-semibold text-gray-900 dark:text-white mb-2">You're Not Just a Pet Owner</h3>
+            <p class="text-body-s text-gray-500 dark:text-gray-400">You're a cat parent. We write for the worry you feel at 2 AM, the relief when test results come back okay, and the quiet joy of watching your cat nap in a sunbeam.</p>
+          </div>
+          <div class="card group">
+            <div class="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 mb-4">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+            </div>
+            <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Science You Can Trust</h3>
+            <p class="text-body-s text-gray-500 dark:text-gray-400">Every article is researched with veterinary guidance and references real studies. We don't guess, and we don't exaggerate. If we're not sure, we say so.</p>
+          </div>
+          <div class="card group">
+            <div class="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 mb-4">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Honest Recommendations</h3>
+            <p class="text-body-s text-gray-500 dark:text-gray-400">When we recommend a product, it's because we believe in it — not because of a commission. We always disclose affiliate relationships, and we'll tell you when something isn't worth the money.</p>
+          </div>
+          <div class="card group">
+            <div class="w-10 h-10 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 mb-4">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+              </svg>
+            </div>
+            <h3 class="font-semibold text-gray-900 dark:text-white mb-2">A Companion, Not a Replacement</h3>
+            <p class="text-body-s text-gray-500 dark:text-gray-400">We're here to help you understand your cat's health and have better conversations with your vet. We'll never tell you to skip the vet visit — we'll help you make the most of it.</p>
+          </div>
         </div>
       </section>
       
+      <!-- What We Cover -->
       <section class="mb-16">
         <h2 class="text-h2 text-gray-900 dark:text-white mb-8">What We Cover</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="card text-center">
+          <a href="/articles?category=urinary-health" class="card text-center hover:border-primary-300 dark:hover:border-primary-700 transition-colors">
             <div class="text-3xl mb-2">🩺</div>
             <div class="font-semibold text-gray-900 dark:text-white mb-1">Urinary Health</div>
             <p class="text-body-s text-gray-500 dark:text-gray-400">FLUTD, UTIs, crystals, blockages</p>
-          </div>
-          <div class="card text-center">
+          </a>
+          <a href="/articles?category=kidney-disease" class="card text-center hover:border-primary-300 dark:hover:border-primary-700 transition-colors">
             <div class="text-3xl mb-2">🫘</div>
             <div class="font-semibold text-gray-900 dark:text-white mb-1">Kidney Disease</div>
             <p class="text-body-s text-gray-500 dark:text-gray-400">CKD stages, treatment, home care</p>
-          </div>
-          <div class="card text-center">
+          </a>
+          <a href="/articles?category=reviews" class="card text-center hover:border-primary-300 dark:hover:border-primary-700 transition-colors">
             <div class="text-3xl mb-2">⭐</div>
             <div class="font-semibold text-gray-900 dark:text-white mb-1">Product Reviews</div>
-            <p class="text-body-s text-gray-500 dark:text-gray-400">Prescription diets, supplements, fountains</p>
-          </div>
-          <div class="card text-center">
+            <p class="text-body-s text-gray-500 dark:text-gray-400">Prescription diets, supplements</p>
+          </a>
+          <a href="/articles?category=care-tips" class="card text-center hover:border-primary-300 dark:hover:border-primary-700 transition-colors">
             <div class="text-3xl mb-2">💡</div>
             <div class="font-semibold text-gray-900 dark:text-white mb-1">Care Tips</div>
             <p class="text-body-s text-gray-500 dark:text-gray-400">Hydration, nutrition, daily care</p>
-          </div>
+          </a>
         </div>
       </section>
       
+      <!-- Get in Touch -->
       <section class="mb-16">
-        <h2 class="text-h2 text-gray-900 dark:text-white mb-6">Get in Touch</h2>
-        <div class="card">
+        <div class="card bg-primary-50/50 dark:bg-primary-900/10 border-primary-100 dark:border-primary-900/30">
+          <h2 class="text-h2 text-gray-900 dark:text-white mb-3">We'd Love to Hear From You</h2>
           <p class="text-body-s text-gray-600 dark:text-gray-400 mb-4">
-            Have questions, corrections, or suggestions? We'd love to hear from you.
+            Have a question about your cat's health? Found something we got wrong? Just want to share a photo of your cat? We're always happy to hear from fellow cat parents.
           </p>
-          <a href="mailto:puracatcare@hotmail.com" class="flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:underline text-body-s">
+          <a href="mailto:puracatcare@hotmail.com" class="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:underline text-body-s font-medium">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
             </svg>

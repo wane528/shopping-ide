@@ -7,13 +7,11 @@ interface Props {
 const { currentPath = '' } = Astro.props;
 
 const navLinks = [
-  { href: '/category/urinary-health', label: 'Urinary Health' },
-  { href: '/category/kidney-disease', label: 'Kidney Disease' },
-  { href: '/category/reviews', label: 'Reviews' },
-  { href: '/category/care-tips', label: 'Care Tips' },
+  { href: '/articles', label: 'Articles' },
+  { href: '/about', label: 'About' },
 ];
 
-const isActive = (href: string) => currentPath.startsWith(href);
+const isActive = (href: string) => currentPath === href || currentPath.startsWith(href + '/');
 ---
 
 <header class="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
