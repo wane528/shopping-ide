@@ -1,0 +1,116 @@
+---
+// src/pages/articles.astro
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Breadcrumb from '@components/common/Breadcrumb.astro';
+import ArticleCard from '@components/article/ArticleCard.astro';
+import Newsletter from '@components/common/Newsletter.astro';
+import { generateBreadcrumbSchema } from '@lib/seo';
+import { db } from '@lib/db';
+import { articles } from '@lib/db/schema';
+import { eq, desc } from 'drizzle-orm';
+
+export const prerender = false;
+
+const title = 'All Articles';
+const description = 'Browse all our comprehensive guides, reviews, and tips on feline urinary health, kidney disease, and cat care.';
+
+// 面包屑
+const breadcrumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'Articles' },
+];
+
+// 从数据库获取所有已发布的文章
+let allArticles: any[] = [];
+try {
+  const result = await db
+    .select()
+    .from(articles)
+    .where(eq(articles.status, 'published'))
+    .orderBy(desc(articles.publishedAt));
+
+  allArticles = result.map(a => ({
+    title: a.title,
+    slug: a.slug,
+    description: a.description,
+    readingTime: a.readingTime || 5,
+    publishedAt: a.publishedAt || '',
+    category: a.category,
+    heroImage: a.heroImage || '',
+  }));
+} catch (error) {
+  console.error('Error fetching articles:', error);
+}
+
+// 如果没有文章，显示占位
+if (allArticles.length === 0) {
+  allArticles = [
+    {
+      title: 'Getting Started Guide',
+      slug: 'getting-started-guide',
+      category: 'guides',
+      description: 'Everything you need to know to get started.',
+      readingTime: 10,
+      publishedAt: new Date().toISOString(),
+    },
+  ];
+}
+---
+
+<BaseLayout title={title} description={description}>
+  <main class="py-8 md:py-12">
+    <div class="container-content">
+      <!-- Breadcrumb -->
+      <Breadcrumb items={breadcrumbs} />
+
+      <!-- Page Header -->
+      <header class="mb-10">
+        <h1 class="text-h1 text-gray-900 dark:text-white mb-3">
+          All Articles
+        </h1>
+        <p class="text-body-l text-gray-600 dark:text-gray-400 max-w-2xl">
+          {description}
+        </p>
+      </header>
+
+      <!-- Articles Grid -->
+      {allArticles.length > 0 ? (
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {allArticles.map((article) => (
+            <ArticleCard {...article} />
+          ))}
+        </div>
+      ) : (
+        <div class="text-center py-16">
+          <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+          </div>
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">No articles yet</h3>
+          <p class="text-body-s text-gray-500 dark:text-gray-400">
+            Check back soon for new content.
+          </p>
+        </div>
+      )}
+
+      <!-- Article Count -->
+      {allArticles.length > 0 && (
+        <p class="text-center text-body-s text-gray-500 dark:text-gray-400 mt-8">
+          {allArticles.length} article{allArticles.length !== 1 ? 's' : ''} total
+        </p>
+      )}
+    </div>
+  </main>
+
+  <!-- Newsletter -->
+  <Newsletter variant="compact" />
+
+  <!-- BreadcrumbList Schema -->
+  <script type="application/ld+json" set:html={JSON.stringify(
+    generateBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Articles' }
+    ])
+  )} />
+</BaseLayout>
